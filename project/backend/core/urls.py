@@ -8,6 +8,7 @@ urlpatterns = [
     path("api/lectures/", include("apps.lectures.urls")),
     path("api/lectures/", include("apps.chat.urls")),
     path("api/lectures/", include("apps.quiz.urls")),
+    path("api/lectures/", include("apps.notes.urls")),
 ]
 
 if settings.DEBUG:

@@ -1239,3 +1239,76 @@ a { color: inherit; }
   line-height: 1.6;
 }
 .quiz-explanation strong { color: var(--ink); }
+
+/* ── Notes page ─────────────────────────────────────────── */
+.notes-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.notes-toolbar-left { flex: 1; min-width: 0; }
+
+.notes-summary-card {
+  background: var(--accent-tint);
+  border: 1px solid rgba(11, 110, 79, 0.18);
+}
+.notes-summary-card .section-eyebrow { color: var(--accent); }
+.notes-summary-card p { color: var(--ink); font-size: 0.96rem; line-height: 1.65; }
+
+.notes-section-card { }
+.notes-section-heading {
+  font-size: 1.02rem;
+  margin-bottom: 12px;
+}
+
+.notes-points {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.notes-points li {
+  display: flex;
+  gap: 10px;
+  font-size: 0.93rem;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.notes-points li::before {
+  content: "";
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-top: 7px;
+}
+
+.notes-glossary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+.notes-term-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.notes-term-name {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.notes-term-def {
+  font-size: 0.88rem;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}

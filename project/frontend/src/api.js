@@ -86,6 +86,14 @@ export const api = {
 
   quizExportUrl: (lectureId, quizId, format) =>
     `${API_BASE}/api/lectures/${lectureId}/quiz/${quizId}/export/?format=${format}`,
+
+  listNotes: (lectureId) => request(`/api/lectures/${lectureId}/notes/`),
+
+  generateNotes: (lectureId) =>
+    request(`/api/lectures/${lectureId}/notes/`, { method: "POST" }),
+
+  notesExportUrl: (lectureId, notesId, format) =>
+    `${API_BASE}/api/lectures/${lectureId}/notes/${notesId}/export/?format=${format}`,
 };
 
 export { ApiError };

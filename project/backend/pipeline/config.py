@@ -47,6 +47,7 @@ RAW_TRANSCRIPT_DIR = WORK_DIR / "raw_transcripts"
 CLEAN_TRANSCRIPT_DIR = WORK_DIR / "clean_transcripts"
 VECTOR_DB_DIR = WORK_DIR / "vector_db"
 QUIZ_DIR = WORK_DIR / "quizzes"
+NOTES_DIR = WORK_DIR / "notes"
 
 for d in (AUDIO_DIR, RAW_TRANSCRIPT_DIR, CLEAN_TRANSCRIPT_DIR, VECTOR_DB_DIR, QUIZ_DIR):
     d.mkdir(parents=True, exist_ok=True)
@@ -86,3 +87,9 @@ QUIZ_BATCH_CHAR_SIZE = int(os.getenv("QUIZ_BATCH_CHAR_SIZE", "8000"))
 QUIZ_DEFAULT_NUM_MCQ = int(os.getenv("QUIZ_DEFAULT_NUM_MCQ", "10"))
 QUIZ_DEFAULT_NUM_SHORT = int(os.getenv("QUIZ_DEFAULT_NUM_SHORT", "5"))
 QUIZ_DEFAULT_NUM_LONG = int(os.getenv("QUIZ_DEFAULT_NUM_LONG", "3"))
+
+# ── Notes Generation Settings ─────────────────────────────
+# notes.py sources from the lecture's full clean transcript text (not the
+# vector store), batched map-reduce style to fit the LLM's context -- see
+# notes.py docstring.
+NOTES_BATCH_CHAR_SIZE = int(os.getenv("NOTES_BATCH_CHAR_SIZE", "8000"))

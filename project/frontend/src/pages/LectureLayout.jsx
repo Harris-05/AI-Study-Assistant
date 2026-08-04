@@ -105,6 +105,12 @@ export default function LectureLayout() {
               <ChatIcon /> Chat
             </NavLink>
             <NavLink
+              to={`/app/lectures/${lectureId}/notes`}
+              className={({ isActive }) => `subnav-link ${isActive ? "active" : ""}`}
+            >
+              <NotesIcon /> Notes
+            </NavLink>
+            <NavLink
               to={`/app/lectures/${lectureId}/quiz`}
               className={({ isActive }) => `subnav-link ${isActive ? "active" : ""}`}
             >
@@ -142,6 +148,20 @@ function ChatIcon() {
         strokeWidth="1.4"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+function NotesIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+      <path
+        d="M4 3h10a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path d="M6 6.5h6M6 9h6M6 11.5h3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   );
 }

@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "apps.lectures",
     "apps.chat",
     "apps.quiz",
+    "apps.notes",
 ]
 
 MIDDLEWARE = [
@@ -221,6 +222,7 @@ REST_FRAMEWORK = {
         "ingest": os.getenv("THROTTLE_INGEST_RATE", "5/hour"),
         "chat": os.getenv("THROTTLE_CHAT_RATE", "30/hour"),
         "quiz": os.getenv("THROTTLE_QUIZ_RATE", "10/hour"),
+        "notes": os.getenv("THROTTLE_NOTES_RATE", "10/hour"),
     },
     "EXCEPTION_HANDLER": "apps.common.exceptions.api_exception_handler",
 }

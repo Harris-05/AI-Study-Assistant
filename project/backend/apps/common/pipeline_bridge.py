@@ -22,6 +22,7 @@ import chunker
 import vectorstore
 import chat as pipeline_chat
 import quiz as pipeline_quiz
+import notes as pipeline_notes
 import main as pipeline_main
 
 __all__ = [
@@ -33,5 +34,6 @@ __all__ = [
     "vectorstore",
     "pipeline_chat",
     "pipeline_quiz",
+    "pipeline_notes",
     "pipeline_main",
 ]

@@ -22,3 +22,7 @@ class ChatRateThrottle(ScopedRateThrottle):
 
 class QuizRateThrottle(ScopedRateThrottle):
     scope = "quiz"
+
+
+class NotesRateThrottle(ScopedRateThrottle):
+    scope = "notes"

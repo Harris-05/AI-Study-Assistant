@@ -9,6 +9,7 @@ import LectureLayout from "./pages/LectureLayout.jsx";
 import TranscriptPage from "./pages/TranscriptPage.jsx";
 import ChatPage from "./pages/ChatPage.jsx";
 import QuizPage from "./pages/QuizPage.jsx";
+import NotesPage from "./pages/NotesPage.jsx";
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="transcript" element={<TranscriptPage />} />
           <Route path="chat" element={<ChatPage />} />
           <Route path="quiz" element={<QuizPage />} />
+          <Route path="notes" element={<NotesPage />} />
         </Route>
       </Routes>
     </Layout>
