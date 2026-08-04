@@ -8,7 +8,7 @@ from pathlib import Path
 from django.conf import settings
 from rest_framework.exceptions import ValidationError
 
-from apps.common.pipeline_bridge import audio_extractor, pipeline_main, vectorstore, pipeline_config
+from apps.common.pipeline_bridge import audio_extractor, pipeline_config, pipeline_main, vectorstore
 from .models import Lecture
 
 
@@ -70,6 +70,17 @@ def ingest_lecture(lecture: Lecture, file_path: Path) -> None:
         )
         chunks = vectorstore.get_all_chunks(lecture.lecture_id)
         lecture.num_chunks = len(chunks)
+
+        # Copy the pipeline's on-disk transcript into Postgres (Supabase)
+        # so it survives independently of the Oracle instance's local disk
+        # -- the audio file and Chroma index stay local-only (see
+        # settings.py), but this small piece of text is the one thing from
+        # ingestion worth being durable off-box. Best-effort: a missing
+        # transcript file shouldn't fail an otherwise-successful ingestion.
+        transcript_path = pipeline_config.CLEAN_TRANSCRIPT_DIR / f"{lecture.lecture_id}.txt"
+        if transcript_path.exists():
+            lecture.transcript = transcript_path.read_text(encoding="utf-8")
+
         lecture.status = Lecture.STATUS_COMPLETED
         lecture.error_message = ""
         lecture.save()

@@ -527,6 +527,205 @@ a { color: inherit; }
 }
 
 /* ══════════════════════════════════════════════════════════
+   Auth screens (login / signup)
+   ══════════════════════════════════════════════════════════ */
+.auth-shell {
+  min-height: calc(100vh - 68px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.auth-side {
+  position: relative;
+  background: var(--ink);
+  color: #fff;
+  padding: 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.auth-side::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(560px 420px at 15% 12%, rgba(11, 110, 79, 0.55), transparent 60%),
+    radial-gradient(480px 380px at 90% 85%, rgba(11, 110, 79, 0.35), transparent 60%);
+  pointer-events: none;
+}
+
+.auth-side-top { position: relative; z-index: 1; }
+.auth-side-bottom { position: relative; z-index: 1; }
+
+.auth-side-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #fff;
+}
+.auth-side-brand .brand-mark { background: #fff; color: var(--accent); }
+.auth-side-brand .brand-name { color: #fff; }
+
+.auth-side-title {
+  font-size: clamp(1.6rem, 2.8vw, 2.15rem);
+  margin: 40px 0 14px;
+  max-width: 15ch;
+}
+.auth-side-title em { font-style: normal; color: #7fe3bd; }
+
+.auth-side-desc {
+  color: rgba(255, 255, 255, 0.72);
+  max-width: 38ch;
+  font-size: 0.98rem;
+}
+
+.auth-side-points {
+  list-style: none;
+  margin: 32px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.auth-side-points li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.92rem;
+}
+.auth-side-points li::before {
+  content: "✓";
+  color: #7fe3bd;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.auth-side-quote {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.02em;
+}
+
+.auth-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+}
+
+.auth-card-head { margin-bottom: 28px; }
+.auth-card-title { font-size: 1.5rem; margin-bottom: 8px; }
+.auth-card-subtitle { color: var(--ink-muted); font-size: 0.94rem; }
+
+.auth-form { display: flex; flex-direction: column; gap: 16px; }
+
+.auth-field label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+  margin-bottom: 7px;
+}
+
+.auth-input-wrap { position: relative; }
+
+.auth-input-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink-faint);
+  display: flex;
+  pointer-events: none;
+}
+
+.auth-input-wrap input {
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px 11px 40px;
+  color: var(--ink);
+  font-size: 0.93rem;
+  font-family: var(--font-body);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.auth-input-wrap input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-tint);
+}
+
+.auth-input-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--ink-faint);
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+}
+.auth-input-toggle:hover { color: var(--ink); }
+
+.auth-field-hint {
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+  margin-top: 6px;
+}
+
+.auth-row-between {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 0.85rem;
+}
+.auth-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+.auth-link:hover { text-decoration: underline; }
+
+.auth-switch {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--ink-muted);
+}
+
+.auth-confirm-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent-tint);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 900px) {
+  .auth-shell { grid-template-columns: 1fr; }
+  .auth-side { display: none; }
+}
+
+/* ══════════════════════════════════════════════════════════
    App screens (lecture list / detail / chat / quiz)
    ══════════════════════════════════════════════════════════ */
 .app-page { padding: 40px 0 80px; }

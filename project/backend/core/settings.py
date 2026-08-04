@@ -1,14 +1,15 @@
 """
 Django settings for the AI Lecture Companion backend.
 
-Everything that changes between local/dev and Render/prod is read from the
-environment -- see .env.example for the full list. Nothing here should need
-editing per-environment; set env vars instead.
+Everything that changes between local/dev and Oracle Cloud/prod is read from
+the environment -- see .env.example for the full list. Nothing here should
+need editing per-environment; set env vars instead.
 """
 import os
 import sys
 from pathlib import Path
 
+import dj_database_url
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,14 +30,17 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "insecure-dev-key-change-me")
 DEBUG = env_bool("DJANGO_DEBUG", True)
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 
-# Render sets this so we know our own public hostname for ALLOWED_HOSTS/CSRF
-RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
-if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+# Public hostname of the Oracle Cloud instance (behind Nginx/Caddy + TLS),
+# e.g. lecture-companion.example.com or a bare OCI public IP for testing.
+# Kept as its own env var (rather than assuming it's already in
+# DJANGO_ALLOWED_HOSTS) so CSRF_TRUSTED_ORIGINS can be derived from it too.
+PUBLIC_HOSTNAME = os.getenv("PUBLIC_HOSTNAME")
+if PUBLIC_HOSTNAME and PUBLIC_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(PUBLIC_HOSTNAME)
 
 CSRF_TRUSTED_ORIGINS = env_list(
     "DJANGO_CSRF_TRUSTED_ORIGINS",
-    f"https://{RENDER_EXTERNAL_HOSTNAME}" if RENDER_EXTERNAL_HOSTNAME else "",
+    f"https://{PUBLIC_HOSTNAME}" if PUBLIC_HOSTNAME else "",
 )
 
 INSTALLED_APPS = [
@@ -87,20 +91,30 @@ TEMPLATES = [
 WSGI_APPLICATION = "core.wsgi.application"
 
 # ── Database ──────────────────────────────────────────────
-# SQLite by default (per project decision -- simple now, upgrade later).
-# NOTE: on Render's free tier the filesystem is EPHEMERAL -- this file (and
-# every uploaded lecture, transcript, and Chroma vector store) is wiped on
-# every redeploy, restart, or free-tier spin-down. Fine for demoing; do not
-# rely on it for real persistence until a paid plan + persistent disk (or an
-# external Postgres) is attached. See backend/README.md.
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.getenv("SQLITE_PATH", str(BASE_DIR / "db.sqlite3")),
+# Supabase Postgres in every real environment. DATABASE_URL is the "Connection
+# string" (URI / "Transaction pooler" for serverless-style connections) from
+# Supabase project settings -> Database -> Connection string, e.g.:
+#   postgresql://postgres.xxxxx:[PASSWORD]@aws-0-<region>.pooler.supabase.com:6543/postgres
+# Falls back to local SQLite only when DATABASE_URL isn't set (bare
+# `python manage.py runserver` with no .env configured yet).
+DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=int(os.getenv("DATABASE_CONN_MAX_AGE", "60")),
+            ssl_require=env_bool("DATABASE_SSL_REQUIRE", True),
+        )
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": os.getenv("SQLITE_PATH", str(BASE_DIR / "db.sqlite3")),
+        }
+    }
 
-AUTH_PASSWORD_VALIDATORS = []  # no user accounts yet (per project decision)
+AUTH_PASSWORD_VALIDATORS = []  # accounts live in Supabase Auth, not Django's auth_user table
 
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
@@ -116,6 +130,13 @@ STORAGES = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ── Media / pipeline work directory ──────────────────────
+# The pipeline (audio extraction, ffmpeg temp files, Chroma's on-disk index)
+# needs a real local filesystem to work in regardless of backend -- Chroma
+# in particular is an embedded/local vector store, not a hosted service, so
+# it always lives on whatever disk the Django process runs on. On Oracle
+# Cloud that's the instance's own (persistent, non-ephemeral) block volume,
+# which is exactly what this project needed and Render's free tier didn't
+# provide -- see README "Architecture decisions".
 MEDIA_URL = "media/"
 MEDIA_ROOT = Path(os.getenv("MEDIA_ROOT", str(BASE_DIR / "media")))
 MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
@@ -132,6 +153,14 @@ PIPELINE_DIR = BASE_DIR / "pipeline"
 os.environ.setdefault("PIPELINE_WORK_DIR", str(MEDIA_ROOT / "work"))
 if str(PIPELINE_DIR) not in sys.path:
     sys.path.insert(0, str(PIPELINE_DIR))
+
+# ── Supabase Storage for the original uploaded audio/video file ─────────
+# NOT wired in. The pipeline needs the file on local disk anyway to run
+# ffmpeg/transcription on it, and audio/video files routinely exceed
+# Supabase's default 50MB per-file bucket limit -- so uploads stay entirely
+# on the Oracle Cloud instance's local disk (MEDIA_ROOT, below). Only text
+# (transcripts, chat, quizzes) goes to Supabase -- see Lecture.transcript
+# in apps/lectures/models.py and the chat/quiz models.
 
 # ── Guardrails (uploads / processing) ────────────────────
 # Max upload size, enforced in apps/lectures/validators.py
@@ -151,16 +180,40 @@ ALLOWED_UPLOAD_EXTENSIONS = {".mp3", ".wav", ".m4a", ".aac", ".flac", ".ogg", ".
 
 # ── CORS ──────────────────────────────────────────────────
 CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", "http://localhost:5173")
-CORS_ALLOW_CREDENTIALS = False
+CORS_ALLOW_CREDENTIALS = False  # auth is a Bearer token header, not a cookie -- no credentials needed
 
-# ── DRF: rate limiting is the main abuse guardrail here, since every
-# endpoint triggers paid third-party API calls (ElevenLabs / Gemini). ──
+# ── Supabase Auth ─────────────────────────────────────────
+# The frontend signs users in directly with supabase-js and sends the
+# resulting access token as `Authorization: Bearer <jwt>`. The backend never
+# sees passwords -- it just verifies the JWT and trusts its `sub` claim as
+# the user id (apps/common/authentication.py).
+#
+# New Supabase projects sign tokens asymmetrically (ES256) by default, and
+# are verified against the project's public JWKS endpoint using SUPABASE_URL
+# alone -- no secret required. SUPABASE_JWT_SECRET is only needed as a
+# fallback for the legacy symmetric (HS256) signing model, i.e. only if this
+# project hasn't been migrated to asymmetric JWT signing keys yet (Project
+# Settings -> JWT Keys in the Supabase dashboard). Leave it blank once
+# you've migrated.
+SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET", "")
+SUPABASE_JWT_AUDIENCE = os.getenv("SUPABASE_JWT_AUDIENCE", "authenticated")
+
+# ── DRF: auth is required by default; rate limiting remains the abuse
+# guardrail on top of that, since every endpoint triggers paid third-party
+# API calls (ElevenLabs / Gemini). ──
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_PARSER_CLASSES": [
         "rest_framework.parsers.JSONParser",
         "rest_framework.parsers.MultiPartParser",
         "rest_framework.parsers.FormParser",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "apps.common.authentication.SupabaseJWTAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.AnonRateThrottle"],
     "DEFAULT_THROTTLE_RATES": {

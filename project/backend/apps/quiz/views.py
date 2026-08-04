@@ -28,11 +28,11 @@ class LectureQuizListCreateView(APIView):
         return super().get_throttles()
 
     def get(self, request, lecture_id):
-        lecture = get_object_or_404(Lecture, lecture_id=lecture_id)
+        lecture = get_object_or_404(Lecture, lecture_id=lecture_id, owner_id=request.user.id)
         return Response(QuizSerializer(lecture.quizzes.all(), many=True).data)
 
     def post(self, request, lecture_id):
-        lecture = get_object_or_404(Lecture, lecture_id=lecture_id)
+        lecture = get_object_or_404(Lecture, lecture_id=lecture_id, owner_id=request.user.id)
         if lecture.status != Lecture.STATUS_COMPLETED:
             return Response(
                 {
@@ -79,7 +79,9 @@ class LectureQuizExportView(APIView):
     Render's free tier and only meant as a CLI convenience anyway)."""
 
     def get(self, request, lecture_id, quiz_id):
-        quiz = get_object_or_404(Quiz, lecture__lecture_id=lecture_id, id=quiz_id)
+        quiz = get_object_or_404(
+            Quiz, lecture__lecture_id=lecture_id, id=quiz_id, lecture__owner_id=request.user.id
+        )
         fmt = request.query_params.get("format", "md")
 
         if fmt == "json":

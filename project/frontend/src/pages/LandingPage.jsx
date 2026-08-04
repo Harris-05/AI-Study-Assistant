@@ -33,7 +33,6 @@ function Hero() {
               See how it works
             </a>
           </div>
-          <p className="hero-microcopy">No sign-up needed to try it.</p>
         </div>
 
         <TransformCard />

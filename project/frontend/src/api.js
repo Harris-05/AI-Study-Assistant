@@ -1,3 +1,5 @@
+import { supabase } from "./supabaseClient.js";
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 class ApiError extends Error {
@@ -9,7 +11,17 @@ class ApiError extends Error {
 }
 
 async function request(path, options = {}) {
-  const res = await fetch(`${API_BASE}${path}`, options);
+  // Attach the current Supabase session's access token, if any, so the
+  // Django backend's SupabaseJWTAuthentication can identify the caller.
+  // getSession() reads from local storage / memory (no network call) and
+  // transparently refreshes an expiring token first.
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+
+  const headers = new Headers(options.headers || {});
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
   let body = null;
   const text = await res.text();
@@ -23,6 +35,9 @@ async function request(path, options = {}) {
 
   if (!res.ok) {
     const err = body?.error;
+    if (res.status === 401) {
+      throw new ApiError("Your session has expired -- please sign in again.", 401, "unauthenticated");
+    }
     if (err?.code === "rate_limited") {
       throw new ApiError(
         `Too many requests -- please wait${err.retry_after_seconds ? ` ${Math.ceil(err.retry_after_seconds)}s` : ""} and try again.`,

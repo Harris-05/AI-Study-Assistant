@@ -5,6 +5,12 @@ django-cors-headers==4.6.0
 gunicorn==23.0.0
 whitenoise==6.8.2
 
+# ── Supabase backend (Postgres + Auth) ─────────────────────
+psycopg[binary]      # Postgres driver (Supabase DB)
+dj-database-url==2.3.0      # parses Supabase's DATABASE_URL connection string
+PyJWT==2.10.1                # verifies Supabase Auth JWTs
+cryptography==44.0.0         # ES256 support for PyJWT (Supabase's asymmetric signing keys)
+
 # ── Pipeline dependencies (unchanged from the CLI project) ─
 langchain==0.3.14
 langchain-core==0.3.29
@@ -15,9 +21,11 @@ langgraph==0.2.60
 langchain-chroma
 chromadb
 
-groq==1.6.0
+elevenlabs==1.13.4
 
 python-dotenv==1.0.1
 tenacity==9.0.0
 loguru==0.7.3
 requests==2.32.3
+
+groq

@@ -1,13 +1,22 @@
 import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const links = [
     { to: "/#how-it-works", label: "How it works" },
     { to: "/#features", label: "Features" },
   ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    setOpen(false);
+    navigate("/");
+  };
 
   return (
     <header className="site-header">
@@ -25,9 +34,20 @@ export default function Header() {
               </a>
             ))}
           </div>
-          <NavLink to="/app" className="btn">
-            Open app
-          </NavLink>
+          {user ? (
+            <>
+              <NavLink to="/app" className="btn">
+                Open app
+              </NavLink>
+              <button className="nav-link" onClick={handleSignOut} title={user.email}>
+                Sign out
+              </button>
+            </>
+          ) : (
+            <NavLink to="/login" className="btn">
+              Sign in
+            </NavLink>
+          )}
         </nav>
 
         <button
@@ -46,9 +66,20 @@ export default function Header() {
             {l.label}
           </a>
         ))}
-        <Link to="/app" className="btn btn-block" style={{ marginTop: 10 }} onClick={() => setOpen(false)}>
-          Open app
-        </Link>
+        {user ? (
+          <>
+            <Link to="/app" className="btn btn-block" style={{ marginTop: 10 }} onClick={() => setOpen(false)}>
+              Open app
+            </Link>
+            <button className="btn btn-block" style={{ marginTop: 10 }} onClick={handleSignOut}>
+              Sign out
+            </button>
+          </>
+        ) : (
+          <Link to="/login" className="btn btn-block" style={{ marginTop: 10 }} onClick={() => setOpen(false)}>
+            Sign in
+          </Link>
+        )}
       </div>
     </header>
   );

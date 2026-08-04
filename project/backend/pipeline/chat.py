@@ -16,6 +16,15 @@ straight-line LangChain chain, so it can:
      angle, merges all the retrieved chunks, then generates one answer
      from the combined set.
 
+  3. REMEMBER recent conversation turns (config.RAG_MEMORY_ENABLED /
+     RAG_MEMORY_MAX_TURNS). Short-term only -- the caller passes in the
+     last few (question, answer) pairs from this lecture's chat session,
+     which get used to (a) help the planner resolve follow-up questions
+     that reference earlier context ("what about its subtypes?"), and
+     (b) keep the final answer conversationally coherent. Memory is NEVER
+     a source of facts -- every claim in the answer still has to be
+     grounded in retrieved lecture chunks, not in what was said earlier.
+
 Graph shape:
 
     question --> plan --> retrieve --> grade --+--> [weak & retries left] --> rewrite --> retrieve (loop)
@@ -23,8 +32,8 @@ Graph shape:
                                                  +--> [strong enough / out of retries] --> generate --> answer
 
 The final-answer system prompt is unchanged from the original chain
-version: ground strictly in retrieved chunks, explicitly say "not covered"
-instead of guessing.
+version aside from the memory rule: ground strictly in retrieved chunks,
+explicitly say "not covered" instead of guessing.
 """
 import json
 from typing import TypedDict
@@ -58,9 +67,13 @@ points relevant to a broad question, synthesize them into one coherent answer ra
 excerpts one by one.
 6. Do not mention "the excerpts" or "the context" explicitly to the student -- just answer as \
 if you'd watched the lecture yourself.
+7. Recent conversation turns may be included below for context (e.g. to understand what "it" or \
+"that" refers to). Use them ONLY to resolve references and keep the conversation coherent -- \
+NEVER as a source of facts. Every factual claim must still come from the lecture excerpts above, \
+even if something was already stated in an earlier turn; re-verify it against the excerpts.
 """
 
-USER_PROMPT = """Lecture excerpts:
+USER_PROMPT = """{history_block}Lecture excerpts:
 ---
 {context}
 ---
@@ -79,6 +92,11 @@ of all examples/mistakes/definitions, or otherwise likely has its answer scatter
 multiple parts of the lecture -- break it into 2-4 focused sub-queries that together cover \
 the different angles of the question.
 
+Recent conversation turns may be included -- use them ONLY to resolve what the question is \
+actually asking about when it references earlier context (pronouns like "it"/"that", or \
+implicit follow-ups like "what about its complexity?"). Turn the resolved, self-contained \
+meaning into your search query/queries -- don't search for the literal pronoun.
+
 Return ONLY a JSON array of strings, nothing else. No markdown, no preamble, no explanation.
 
 Example 1
@@ -88,19 +106,26 @@ Question: What is polymorphism?
 Example 2
 Question: Summarize everything the lecture said about inheritance
 ["definition of inheritance", "examples of inheritance given in the lecture", "problems or common mistakes related to inheritance mentioned", "how inheritance relates to other OOP concepts discussed"]
+
+Example 3 (with conversation history showing the previous topic was "linked lists")
+Question: what about its time complexity?
+["time complexity of linked lists"]
 """
 
 REWRITE_SYSTEM_PROMPT = """The following search query returned weak/low-relevance results from a \
 lecture transcript's vector index. Rewrite it as a DIFFERENT search query that might match how \
 the lecture actually phrased this -- try synonyms, the English term if the original looks Urdu \
-(or vice versa), a more literal phrasing, or a slightly broader/narrower version. Return ONLY the \
-rewritten query text, nothing else -- no quotes, no preamble."""
+(or vice versa), a more literal phrasing, or a slightly broader/narrower version. If the original \
+question references earlier conversation (pronouns like "it"/"that"), resolve that into a \
+self-contained query using the conversation history below. Return ONLY the rewritten query text, \
+nothing else -- no quotes, no preamble."""
 
 
 class ChatState(TypedDict):
     lecture_id: str
     question: str
     k: int
+    history: list[dict]  # [{"question": str, "answer": str}, ...], most recent last
     queries: list[str]
     retrieved: dict  # key -> (Document, score), merged/deduped across retries+subqueries
     attempt: int
@@ -126,6 +151,27 @@ def _format_context(docs: list) -> str:
     return "\n\n".join(parts)
 
 
+def _effective_history(history: list[dict] | None) -> list[dict]:
+    """Apply the config toggle/window -- callers can pass whatever they
+    have; this is the single place that decides how much (if any) is
+    actually used, so the RAG_MEMORY_ENABLED flag is a real hard override."""
+    if not config.RAG_MEMORY_ENABLED or not history:
+        return []
+    return history[-config.RAG_MEMORY_MAX_TURNS:]
+
+
+def _format_history(history: list[dict]) -> str:
+    if not history:
+        return ""
+    lines = []
+    for turn in history:
+        lines.append(f"Student: {turn['question']}")
+        lines.append(f"Assistant: {turn['answer']}")
+    return "Recent conversation (for context/reference resolution only, not a source of facts):\n" + "\n".join(
+        lines
+    )
+
+
 def _parse_query_list(raw: str, fallback: str) -> list[str]:
     """Parse the planner's JSON array response; fall back to the original
     question if the model didn't return valid JSON (keeps the graph
@@ -147,14 +193,20 @@ def _parse_query_list(raw: str, fallback: str) -> list[str]:
 # ── Graph nodes ───────────────────────────────────────────
 
 def _plan(state: ChatState) -> dict:
-    """Decide narrow vs. broad, and produce the initial search queries."""
+    """Decide narrow vs. broad, and produce the initial search queries.
+    Conversation history (if any) is included so follow-up questions that
+    reference earlier context get resolved into self-contained queries."""
     llm = _get_llm(temperature=0.0)
     prompt = ChatPromptTemplate.from_messages([
         ("system", PLAN_SYSTEM_PROMPT),
-        ("human", "Question: {question}"),
+        ("human", "{history_block}Question: {question}"),
     ])
     chain = prompt | llm | StrOutputParser()
-    raw = chain.invoke({"question": state["question"]})
+
+    history_text = _format_history(state["history"])
+    history_block = f"{history_text}\n\n" if history_text else ""
+
+    raw = chain.invoke({"history_block": history_block, "question": state["question"]})
 
     queries = _parse_query_list(raw, fallback=state["question"])[: config.RAG_MAX_SUBQUERIES]
     logger.info(f"Planned {len(queries)} search quer{'y' if len(queries) == 1 else 'ies'}: {queries}")
@@ -206,10 +258,14 @@ def _rewrite(state: ChatState) -> dict:
     llm = _get_llm(temperature=0.3)
     prompt = ChatPromptTemplate.from_messages([
         ("system", REWRITE_SYSTEM_PROMPT),
-        ("human", "Original query: {question}"),
+        ("human", "{history_block}Original query: {question}"),
     ])
     chain = prompt | llm | StrOutputParser()
-    new_query = chain.invoke({"question": state["question"]}).strip()
+
+    history_text = _format_history(state["history"])
+    history_block = f"{history_text}\n\n" if history_text else ""
+
+    new_query = chain.invoke({"history_block": history_block, "question": state["question"]}).strip()
 
     logger.info(f"Rewrote query for retry: '{new_query}'")
     return {"queries": [new_query], "attempt": state["attempt"] + 1}
@@ -230,13 +286,16 @@ def _generate(state: ChatState) -> dict:
     docs = [doc for doc, _score in ranked]
     context = _format_context(docs)
 
+    history_text = _format_history(state["history"])
+    history_block = f"{history_text}\n\n" if history_text else ""
+
     prompt = ChatPromptTemplate.from_messages([
         ("system", SYSTEM_PROMPT),
         ("human", USER_PROMPT),
     ])
     llm = _get_llm(temperature=0.2)
     chain = prompt | llm | StrOutputParser()
-    answer = chain.invoke({"context": context, "question": state["question"]})
+    answer = chain.invoke({"history_block": history_block, "context": context, "question": state["question"]})
 
     sources = [
         {
@@ -280,10 +339,22 @@ def _get_graph():
     return _GRAPH
 
 
-def ask(lecture_id: str, question: str, k: int | None = None) -> dict:
+def ask(lecture_id: str, question: str, k: int | None = None, history: list[dict] | None = None) -> dict:
     """
     Answer a question about one lecture using the LangGraph-orchestrated
     RAG loop: plan queries -> retrieve -> grade -> (retry if weak) -> generate.
+
+    Args:
+        lecture_id: which lecture's vector store to query
+        question: the student's current question
+        k: number of chunks to retrieve per search (defaults to config.RAG_TOP_K)
+        history: recent prior turns in this chat session, oldest first --
+            [{"question": str, "answer": str}, ...]. Used only for
+            reference resolution and conversational continuity, never as a
+            source of facts (see chat.py module docstring). Subject to
+            config.RAG_MEMORY_ENABLED / RAG_MEMORY_MAX_TURNS regardless of
+            how much is passed in here -- callers can just pass everything
+            they have and let this function do the windowing.
 
     Returns:
         {
@@ -296,6 +367,7 @@ def ask(lecture_id: str, question: str, k: int | None = None) -> dict:
         "lecture_id": lecture_id,
         "question": question,
         "k": k or config.RAG_TOP_K,
+        "history": _effective_history(history),
         "queries": [],
         "retrieved": {},
         "attempt": 0,
@@ -338,6 +410,10 @@ def main():
         lecture_id = lecture_ids[0]
 
     print(f"\nChatting with lecture '{lecture_id}'. Type 'exit' or 'quit' to stop.\n")
+    if config.RAG_MEMORY_ENABLED:
+        print(f"(remembering the last {config.RAG_MEMORY_MAX_TURNS} turn(s) of this session)\n")
+
+    session_history: list[dict] = []
 
     while True:
         question = input("You: ").strip()
@@ -347,7 +423,7 @@ def main():
             break
 
         try:
-            result = ask(lecture_id, question)
+            result = ask(lecture_id, question, history=session_history)
         except Exception as e:
             logger.error(f"Failed to answer question: {e}")
             print("Sorry, something went wrong answering that -- check the logs above.")
@@ -356,6 +432,8 @@ def main():
         print(f"\nAssistant: {result['answer']}")
         _print_sources(result["sources"])
         print()
+
+        session_history.append({"question": question, "answer": result["answer"]})
 
 
 if __name__ == "__main__":

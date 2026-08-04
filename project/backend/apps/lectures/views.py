@@ -26,7 +26,7 @@ class LectureListCreateView(APIView):
         return super().get_throttles()
 
     def get(self, request):
-        lectures = Lecture.objects.all()
+        lectures = Lecture.objects.filter(owner_id=request.user.id)
         return Response(LectureSerializer(lectures, many=True).data)
 
     def post(self, request):
@@ -35,6 +35,7 @@ class LectureListCreateView(APIView):
         data = serializer.validated_data
 
         lecture = Lecture.objects.create(
+            owner_id=request.user.id,
             title=data["title"],
             course=data["course"],
             instructor=data["instructor"],
@@ -74,26 +75,28 @@ class LectureListCreateView(APIView):
 
 
 class LectureDetailView(APIView):
-    def get_object(self, lecture_id):
-        return get_object_or_404(Lecture, lecture_id=lecture_id)
+    def get_object(self, request, lecture_id):
+        return get_object_or_404(Lecture, lecture_id=lecture_id, owner_id=request.user.id)
 
     def get(self, request, lecture_id):
-        return Response(LectureSerializer(self.get_object(lecture_id)).data)
+        return Response(LectureSerializer(self.get_object(request, lecture_id)).data)
 
     def delete(self, request, lecture_id):
-        lecture = self.get_object(lecture_id)
+        lecture = self.get_object(request, lecture_id)
         delete_lecture_data(lecture)
         lecture.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class LectureTranscriptView(APIView):
-    """GET -- the cleaned transcript text for a lecture, read straight off
-    disk from work/clean_transcripts/<lecture_id>.txt (not stored in the DB
-    -- it's produced once by the pipeline and doesn't change)."""
+    """GET -- the cleaned transcript text for a lecture. Served from the DB
+    (Lecture.transcript, copied there once by services.ingest_lecture) so it
+    doesn't depend on the Oracle instance's local disk still having the
+    file; falls back to reading straight off disk for old rows ingested
+    before this field existed."""
 
     def get(self, request, lecture_id):
-        lecture = get_object_or_404(Lecture, lecture_id=lecture_id)
+        lecture = get_object_or_404(Lecture, lecture_id=lecture_id, owner_id=request.user.id)
 
         if lecture.status != Lecture.STATUS_COMPLETED:
             return Response(
@@ -106,13 +109,16 @@ class LectureTranscriptView(APIView):
                 status=status.HTTP_409_CONFLICT,
             )
 
+        if lecture.transcript:
+            return Response({"lecture_id": lecture_id, "text": lecture.transcript})
+
         transcript_path = pipeline_config.CLEAN_TRANSCRIPT_DIR / f"{lecture_id}.txt"
         if not transcript_path.exists():
             return Response(
                 {
                     "error": {
                         "code": "transcript_missing",
-                        "message": "This lecture is marked completed but its transcript file is missing on disk.",
+                        "message": "This lecture is marked completed but its transcript is missing.",
                     }
                 },
                 status=status.HTTP_404_NOT_FOUND,

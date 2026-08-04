@@ -1,0 +1,36 @@
+# Deployment layout for a single Oracle Cloud (OCI) compute instance
+# (e.g. the Always Free Ampere A1 shape):
+#
+#   Internet -> nginx (TLS, :443) -> frontend static build (/) 
+#                                  -> backend container (/api/*, :8000)
+#
+# The backend's persistent state (uploaded audio, transcripts, Chroma vector
+# index) lives on a named volume backed by the instance's own block volume
+# -- this is the thing Render's free tier couldn't give you. Lecture/chat/
+# quiz *metadata* and user accounts live in Supabase (Postgres + Auth), not
+# on this box at all, so the box itself is disposable/replaceable as long as
+# lecture_data volume and your .env are backed up.
+#
+# Usage:
+#   cp backend/.env.example backend/.env   # fill in Supabase + API keys
+#   docker compose up -d --build
+#
+# Put nginx/certbot in front separately (see backend/README.md "Deploying to
+# Oracle Cloud"), or swap the ports mapping below to expose 8000 directly
+# while testing.
+
+services:
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      - MEDIA_ROOT=/data/media
+    volumes:
+      - lecture_data:/data/media
+    ports:
+      - "8000:8000"
+
+volumes:
+  lecture_data:

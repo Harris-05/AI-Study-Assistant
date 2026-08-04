@@ -30,6 +30,14 @@ class Lecture(models.Model):
 
     lecture_id = models.SlugField(max_length=32, unique=True, default=generate_lecture_id, editable=False)
 
+    # Supabase auth.users.id (a UUID) of the account that uploaded this
+    # lecture. Not a Django ForeignKey -- Supabase's auth.users table is the
+    # source of truth for accounts, not Django's own auth_user table (see
+    # apps/common/authentication.py). Nullable only to keep old rows/local
+    # dev without auth configured from breaking; every lecture created
+    # through the API always gets one.
+    owner_id = models.UUIDField(null=True, blank=True, db_index=True)
+
     title = models.CharField(max_length=255)
     course = models.CharField(max_length=255, blank=True)
     instructor = models.CharField(max_length=255, blank=True)
@@ -46,6 +54,15 @@ class Lecture(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
     error_message = models.TextField(blank=True)
     num_chunks = models.PositiveIntegerField(null=True, blank=True)
+
+    # The pipeline's cleaned transcript text, copied here once ingestion
+    # finishes (see services.ingest_lecture). This is the thing that
+    # actually needs to survive in Supabase -- the raw audio/video file
+    # stays local-only (see settings.py's note on Supabase Storage), but
+    # the transcript is small, is the whole point of the app, and this way
+    # it's durable in Postgres even if the Oracle instance's disk is ever
+    # lost, without needing a bucket at all.
+    transcript = models.TextField(blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

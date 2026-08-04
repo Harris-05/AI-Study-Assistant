@@ -12,7 +12,7 @@ load_dotenv()
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")  # for Gemini
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "whisper-large-v3-turbo")  # scribe_v2 | scribe_v1
+GROQ_MODEL = os.getenv("GROQ_MODEL", "whisper-large-v3-turbo") 
 # ── LLM Settings ─────────────────────────────────────────
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini")  # gemini | openai | anthropic
 LLM_MODEL = os.getenv("LLM_MODEL", "gemini-3.5-flash-lite")
@@ -73,6 +73,12 @@ RAG_CONFIDENCE_THRESHOLD = float(os.getenv("RAG_CONFIDENCE_THRESHOLD", "0.5"))
 RAG_MAX_RETRIES = int(os.getenv("RAG_MAX_RETRIES", "2"))
 RAG_MAX_SUBQUERIES = int(os.getenv("RAG_MAX_SUBQUERIES", "4"))
 
+RAG_MEMORY_ENABLED = os.getenv("RAG_MEMORY_ENABLED", "true").lower() == "true"
+# How many previous (question, answer) turns to include -- older turns are
+# dropped, not summarized. Keep this small; each turn adds real tokens to
+# both the planning call and the generation call, on every question.
+RAG_MEMORY_MAX_TURNS = int(os.getenv("RAG_MEMORY_MAX_TURNS", "4"))
+ 
 # ── Quiz Generation Settings ──────────────────────────────
 # quiz.py sources from already-ingested vector store chunks (not the raw
 # transcript file), batched to fit the LLM's context -- see quiz.py docstring.
