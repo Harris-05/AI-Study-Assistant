@@ -1,0 +1,91 @@
+name: CI
+
+# Runs on every push to main/dev, and on every pull request targeting them.
+# The pull_request trigger is the important one: it lets us require these
+# checks to pass before a branch can be merged.
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+# If you push twice quickly, cancel the older run instead of queueing both.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend - checks and tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: project/backend
+
+    # Deliberately mirrors the production configuration, with two
+    # differences: no DATABASE_URL (so settings.py falls back to SQLite and
+    # CI needs no Supabase access), and no API keys (the tests never call a
+    # paid service). None of these values are secret.
+    env:
+      DJANGO_SECRET_KEY: ci-only-key-not-used-in-production
+      DJANGO_DEBUG: "false"
+      DJANGO_SECURE_SSL_REDIRECT: "false"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+      CORS_ALLOWED_ORIGINS: http://localhost:5173
+      MEDIA_ROOT: /tmp/ci-media
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: project/backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Django system checks
+        run: python manage.py check
+
+      - name: Detect models changed without a migration
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Run tests
+        run: python manage.py test --verbosity 2
+
+  docker:
+    name: Backend - Docker image builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The server deploys by building this exact Dockerfile. Building it
+      # here means a broken Dockerfile is caught in CI rather than halfway
+      # through a deployment.
+      - name: Build backend image
+        run: docker build -t ai-study-backend:ci project/backend
+
+  frontend:
+    name: Frontend - build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: project/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: project/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Catches broken imports, syntax errors and missing files before
+      # Vercel tries to build the same thing.
+      - name: Build
+        run: npm run build
