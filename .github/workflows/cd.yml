@@ -1,0 +1,69 @@
+name: CD
+
+# Deploys only after CI has finished successfully on main. Using
+# workflow_run (rather than a plain push trigger) means a red build can
+# never reach production -- the gate is enforced, not remembered.
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  # Lets you redeploy by hand from the Actions tab -- useful for rollbacks
+  # and for re-running a deploy after fixing a server-side problem.
+  workflow_dispatch:
+
+# Never let two deployments overlap. A queued deploy waits rather than
+# rebuilding the same containers underneath a running one.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+
+    # Skip if CI failed. Manual runs bypass this, since there is no
+    # associated CI run to inspect.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    # Named environment: shows deployment history on the repo home page,
+    # and is where you would add a required-approval gate if you wanted
+    # deploys to need a human click.
+    environment:
+      name: production
+      url: https://ai-study-assistant.duckdns.org
+
+    steps:
+      - name: Run the deploy script over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          # The key on the server is locked to this one command, so the
+          # script name here is advisory -- the server runs deploy.sh
+          # regardless of what is requested.
+          script: bash ~/deploy.sh
+          script_stop: true
+          # Building the image can take a few minutes on a t3.micro.
+          command_timeout: 20m
+
+      - name: Verify the public endpoint
+        # The script already checks health from inside the server. This
+        # checks the full public path: DNS, TLS certificate, Nginx, Django.
+        run: |
+          for attempt in $(seq 1 10); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' \
+              https://ai-study-assistant.duckdns.org/api/health/ || echo 000)
+            if [ "$code" = "200" ]; then
+              echo "Public health check passed"
+              exit 0
+            fi
+            echo "Attempt ${attempt}: got HTTP ${code}, retrying..."
+            sleep 10
+          done
+          echo "Public health check failed"
+          exit 1

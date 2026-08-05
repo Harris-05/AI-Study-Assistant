@@ -30,7 +30,11 @@ services:
     volumes:
       - lecture_data:/data/media
     ports:
-      - "8000:8000"
+      # Bound to localhost only: Nginx (on the host) proxies to this, and
+      # nothing outside the machine should reach Django directly. Docker
+      # writes its own iptables rules, so relying on the cloud firewall
+      # alone is not sufficient here.
+      - "127.0.0.1:8000:8000"
 
 volumes:
   lecture_data:
