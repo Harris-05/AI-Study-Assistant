@@ -109,31 +109,11 @@ export default function LoginPage() {
 
 export function AuthSidePanel() {
   return (
-    <div className="auth-side">
-      <div className="auth-side-top">
-        <Link to="/" className="auth-side-brand">
-          <span className="brand-mark">اع</span>
-          <span className="brand-name">Lecture Companion</span>
-        </Link>
-
-        <h2 className="auth-side-title">
-          Turn every lecture into a <em>study-ready</em> companion
-        </h2>
-        <p className="auth-side-desc">
-          Upload mixed Urdu, English and Arabic recordings and get clean transcripts,
-          source-grounded chat, and quizzes generated automatically.
-        </p>
-
-        <ul className="auth-side-points">
-          <li>Accurate transcripts across code-switched lectures</li>
-          <li>Ask questions and get answers cited to the transcript</li>
-          <li>Auto-generated quizzes to test your understanding</li>
-        </ul>
-      </div>
-
-      <div className="auth-side-bottom">
-        <span className="auth-side-quote">// built for students, by students</span>
-      </div>
+    <div className="auth-hero">
+      <span className="eyebrow">Urdu · English · Arabic — one upload</span>
+      <h2 className="auth-hero-title">
+        Every lecture, turned into a <span className="accent-word">study-ready</span> companion
+      </h2>
     </div>
   );
 }

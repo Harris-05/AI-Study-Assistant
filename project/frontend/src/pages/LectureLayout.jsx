@@ -1,12 +1,17 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet, useNavigate, useParams } from "react-router-dom";
+import { Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { api, ApiError } from "../api";
+import { useLectures } from "../context/LecturesContext.jsx";
 import StatusBadge from "../components/StatusBadge";
 import ErrorBanner from "../components/ErrorBanner";
+import WorkspaceTabs from "../components/layout/WorkspaceTabs.jsx";
 
 export default function LectureLayout() {
   const { lectureId } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
+  const { refresh } = useLectures();
   const [lecture, setLecture] = useState(null);
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -25,6 +30,7 @@ export default function LectureLayout() {
     setDeleting(true);
     try {
       await api.deleteLecture(lectureId);
+      await refresh(); // so the sidebar drops it immediately
       navigate("/app");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Delete failed.");
@@ -34,7 +40,7 @@ export default function LectureLayout() {
 
   if (error) {
     return (
-      <div className="container app-page">
+      <div className="workspace-page">
         <ErrorBanner message={error} />
       </div>
     );
@@ -42,7 +48,7 @@ export default function LectureLayout() {
 
   if (!lecture) {
     return (
-      <div className="container app-page">
+      <div className="workspace-page">
         <p className="muted">
           <span className="spinner" /> Loading lecture...
         </p>
@@ -51,10 +57,11 @@ export default function LectureLayout() {
   }
 
   const ready = lecture.status === "completed";
+  const isChatTab = location.pathname.endsWith("/chat");
 
   return (
-    <div className="container app-page">
-      <div className="lecture-header">
+    <div className="workspace-lecture">
+      <div className="workspace-lecture-header">
         <div className="lecture-header-main">
           <div className="page-head" style={{ marginBottom: 6 }}>
             <h1 className="page-title">{lecture.title}</h1>
@@ -77,48 +84,63 @@ export default function LectureLayout() {
         </button>
       </div>
 
-      {lecture.status === "failed" && <ErrorBanner message={lecture.error_message || "Processing failed."} />}
+      {lecture.status === "failed" && (
+        <div className="workspace-page-inline">
+          <ErrorBanner message={lecture.error_message || "Processing failed."} />
+        </div>
+      )}
       {lecture.status === "processing" && (
-        <div className="card">
-          <span className="spinner" /> Still processing -- this page will update once it's ready. Refresh to check.
+        <div className="workspace-page-inline">
+          <div className="card">
+            <span className="spinner" /> Still processing -- this page will update once it's ready. Refresh to check.
+          </div>
         </div>
       )}
       {lecture.status === "pending" && (
-        <div className="card">
-          <span className="spinner" /> Queued for processing...
+        <div className="workspace-page-inline">
+          <div className="card">
+            <span className="spinner" /> Queued for processing...
+          </div>
         </div>
       )}
 
       {ready && (
         <>
-          <nav className="lecture-subnav">
-            <NavLink
-              to={`/app/lectures/${lectureId}/transcript`}
-              className={({ isActive }) => `subnav-link ${isActive ? "active" : ""}`}
-            >
-              <TranscriptIcon /> Transcript
-            </NavLink>
-            <NavLink
-              to={`/app/lectures/${lectureId}/chat`}
-              className={({ isActive }) => `subnav-link ${isActive ? "active" : ""}`}
-            >
-              <ChatIcon /> Chat
-            </NavLink>
-            <NavLink
-              to={`/app/lectures/${lectureId}/notes`}
-              className={({ isActive }) => `subnav-link ${isActive ? "active" : ""}`}
-            >
-              <NotesIcon /> Notes
-            </NavLink>
-            <NavLink
-              to={`/app/lectures/${lectureId}/quiz`}
-              className={({ isActive }) => `subnav-link ${isActive ? "active" : ""}`}
-            >
-              <QuizIcon /> Quiz
-            </NavLink>
-          </nav>
+          <div className="workspace-tabs">
+            <WorkspaceTabs
+              tabs={[
+                { id: "chat", label: "Chat", to: `/app/lectures/${lectureId}/chat`, icon: <ChatIcon /> },
+                {
+                  id: "transcript",
+                  label: "Transcript",
+                  to: `/app/lectures/${lectureId}/transcript`,
+                  icon: <TranscriptIcon />,
+                },
+                { id: "notes", label: "Notes", to: `/app/lectures/${lectureId}/notes`, icon: <NotesIcon /> },
+                { id: "quiz", label: "Quiz", to: `/app/lectures/${lectureId}/quiz`, icon: <QuizIcon /> },
+              ]}
+            />
+          </div>
 
-          <Outlet context={{ lecture }} />
+          <div className={`workspace-tab-content ${isChatTab ? "workspace-tab-content--chat" : ""}`}>
+            {/* Cross-fade between Chat/Transcript/Notes/Quiz on tab switch
+                instead of a hard cut -- keyed on the pathname so it only
+                fires on an actual tab change, not on data refetches within
+                the same tab. Chat skips the fade+rise (mode="wait" would
+                otherwise blank the composer for a beat mid-conversation)
+                and just cross-fades in place. */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: isChatTab ? 0 : 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                style={isChatTab ? { display: "flex", flexDirection: "column", flex: 1, minHeight: 0 } : undefined}
+              >
+                <Outlet context={{ lecture }} />
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </>
       )}
     </div>

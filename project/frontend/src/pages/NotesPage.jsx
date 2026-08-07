@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import { api, ApiError } from "../api";
 import ErrorBanner from "../components/ErrorBanner";
+
+const staggerList = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
+const fadeUp = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.16, 1, 0.3, 1] } },
+};
 
 export default function NotesPage() {
   useOutletContext();
@@ -95,7 +102,7 @@ export default function NotesPage() {
       )}
 
       {activeNotes && data && (
-        <>
+        <motion.div key={activeNotes.id} initial="hidden" animate="show" variants={staggerList}>
           <div className="export-row" style={{ marginBottom: 20 }}>
             <a className="btn-icon-text" href={api.notesExportUrl(lectureId, activeNotes.id, "md")}>
               <DownloadIcon /> .md
@@ -106,25 +113,25 @@ export default function NotesPage() {
           </div>
 
           {data.summary && (
-            <div className="card notes-summary-card">
+            <motion.div className="card notes-summary-card" variants={fadeUp}>
               <div className="section-eyebrow">Summary</div>
               <p>{data.summary}</p>
-            </div>
+            </motion.div>
           )}
 
           {(data.sections || []).map((section, i) => (
-            <div key={i} className="card notes-section-card">
+            <motion.div key={i} className="card notes-section-card" variants={fadeUp}>
               <h3 className="notes-section-heading">{section.heading}</h3>
               <ul className="notes-points">
                 {(section.points || []).map((point, j) => (
                   <li key={j}>{point}</li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
           ))}
 
           {data.key_terms?.length > 0 && (
-            <div className="card">
+            <motion.div className="card" variants={fadeUp}>
               <h3 className="notes-section-heading">Key Terms</h3>
               <div className="notes-glossary">
                 {data.key_terms.map((kt, i) => (
@@ -134,9 +141,9 @@ export default function NotesPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
-        </>
+        </motion.div>
       )}
     </div>
   );

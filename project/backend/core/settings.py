@@ -174,7 +174,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # stream anything bigger than 10
 # for now). Reject anything longer with a clear error rather than tying up
 # a worker/timing out unpredictably. Raise this once ingestion moves to a
 # background queue (Celery/RQ).
-MAX_SYNC_LECTURE_DURATION_SECONDS = int(os.getenv("MAX_SYNC_LECTURE_DURATION_SECONDS", str(20 * 60)))
+MAX_SYNC_LECTURE_DURATION_SECONDS = int(os.getenv("MAX_SYNC_LECTURE_DURATION_SECONDS", str(120 * 60)))
 
 ALLOWED_UPLOAD_EXTENSIONS = {".mp3", ".wav", ".m4a", ".aac", ".flac", ".ogg", ".opus", ".wma",
                               ".mp4", ".mov", ".mkv", ".webm"}

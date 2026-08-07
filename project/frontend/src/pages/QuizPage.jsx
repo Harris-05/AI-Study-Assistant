@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { api, ApiError } from "../api";
 import ErrorBanner from "../components/ErrorBanner";
+
+const staggerList = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } };
+const fadeUp = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } },
+};
 
 const SECTIONS = [
   { key: "mcqs", label: "Multiple Choice" },
@@ -164,35 +171,58 @@ export default function QuizPage() {
             </div>
           </div>
 
-          {section === "mcqs" && (
-            <div className="quiz-questions">
-              {activeQuiz.data.mcqs.map((q, i) => (
-                <MCQCard key={i} index={i} question={q} />
-              ))}
-            </div>
-          )}
+          <AnimatePresence mode="wait">
+            {section === "mcqs" && (
+              <motion.div
+                key="mcqs"
+                className="quiz-questions"
+                initial="hidden"
+                animate="show"
+                exit={{ opacity: 0 }}
+                variants={staggerList}
+              >
+                {activeQuiz.data.mcqs.map((q, i) => (
+                  <MCQCard key={i} index={i} question={q} />
+                ))}
+              </motion.div>
+            )}
 
-          {section === "short_questions" && (
-            <div className="quiz-questions">
-              {activeQuiz.data.short_questions.map((q, i) => (
-                <RevealCard key={i} index={i} question={q.question} answer={q.answer} answerLabel="Answer" />
-              ))}
-            </div>
-          )}
+            {section === "short_questions" && (
+              <motion.div
+                key="short"
+                className="quiz-questions"
+                initial="hidden"
+                animate="show"
+                exit={{ opacity: 0 }}
+                variants={staggerList}
+              >
+                {activeQuiz.data.short_questions.map((q, i) => (
+                  <RevealCard key={i} index={i} question={q.question} answer={q.answer} answerLabel="Answer" />
+                ))}
+              </motion.div>
+            )}
 
-          {section === "long_questions" && (
-            <div className="quiz-questions">
-              {activeQuiz.data.long_questions.map((q, i) => (
-                <RevealCard
-                  key={i}
-                  index={i}
-                  question={q.question}
-                  answer={q.answer_guidance}
-                  answerLabel="Answer guidance"
-                />
-              ))}
-            </div>
-          )}
+            {section === "long_questions" && (
+              <motion.div
+                key="long"
+                className="quiz-questions"
+                initial="hidden"
+                animate="show"
+                exit={{ opacity: 0 }}
+                variants={staggerList}
+              >
+                {activeQuiz.data.long_questions.map((q, i) => (
+                  <RevealCard
+                    key={i}
+                    index={i}
+                    question={q.question}
+                    answer={q.answer_guidance}
+                    answerLabel="Answer guidance"
+                  />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </>
       )}
     </div>
@@ -208,7 +238,7 @@ function MCQCard({ index, question }) {
   const answered = selected !== null;
 
   return (
-    <div className="card quiz-question-card">
+    <motion.div className="card quiz-question-card" variants={fadeUp}>
       <div className="quiz-question-head">
         <span className="quiz-question-number">Q{index + 1}</span>
         <DifficultyBadge level={question.difficulty} />
@@ -242,7 +272,7 @@ function MCQCard({ index, question }) {
           <strong>Explanation:</strong> {question.explanation}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -250,22 +280,27 @@ function RevealCard({ index, question, answer, answerLabel }) {
   const [revealed, setRevealed] = useState(false);
 
   return (
-    <div className="card quiz-question-card">
+    <motion.div className="card quiz-question-card" variants={fadeUp}>
       <div className="quiz-question-head">
         <span className="quiz-question-number">Q{index + 1}</span>
       </div>
       <p className="quiz-question-text">{question}</p>
 
       {revealed ? (
-        <div className="quiz-explanation">
+        <motion.div
+          className="quiz-explanation"
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+        >
           <strong>{answerLabel}:</strong> {answer}
-        </div>
+        </motion.div>
       ) : (
         <button className="btn btn-secondary btn-sm" onClick={() => setRevealed(true)}>
           Reveal {answerLabel.toLowerCase()}
         </button>
       )}
-    </div>
+    </motion.div>
   );
 }
 

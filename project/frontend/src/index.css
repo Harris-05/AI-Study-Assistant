@@ -1,53 +1,144 @@
 /* ══════════════════════════════════════════════════════════
    Design tokens
-   White background, ink-green accent (deliberately not the
-   default SaaS blue or AI-cliché cream+terracotta). Space
-   Grotesk carries personality in headings; Inter stays quiet
-   in body copy; IBM Plex Mono marks data/metadata (chunk
-   indices, confidence, language tags) -- a nod to the
-   structured-transcript nature of the product.
-   ══════════════════════════════════════════════════════════ */
+   Warm amber accent on a near-black ink stays the global brand
+   voice (nav, buttons, forms, every non-landing page) -- untouched
+   here on purpose so the rest of the app doesn't shift underneath
+   this pass.
+
+   The LANDING PAGE runs a minimal black/white system (picked via the
+  ui-ux-pro-max "Minimalist Monochrome" / "Minimal & Direct" style
+  entries): near-black and white do almost all the work, with --gold
+  kept as the single deliberate accent -- it's the same color as the
+  sitewide --accent, so the one spot of color on an otherwise
+  monochrome page is also the same color as every button in the app.
+  Everything that used to be a 4-hue card family (navy/teal/gold/
+  terracotta) is now a gray scale (--mono-1..4) plus that one gold.
+  ══════════════════════════════════════════════════════════ */
 :root {
   --bg: #ffffff;
-  --bg-subtle: #f6f7f8;
-  --bg-accent-tint: #eef6f2;
+  --bg-subtle: #f6f7f9;
+  --bg-accent-tint: #fcefdc;
 
-  --ink: #14161a;
-  --ink-muted: #5b6270;
-  --ink-faint: #8a90a0;
+  --ink: #17141f;
+  --ink-muted: #5c5666;
+  --ink-faint: #918c9c;
 
-  --border: #e6e8ec;
-  --border-strong: #d3d7dd;
+  --border: #e6e5eb;
+  --border-strong: #d2d0da;
 
-  --accent: #0b6e4f;
-  --accent-hover: #085a40;
-  --accent-tint: #eef6f2;
+  --accent: #e2a13a;
+  --accent-hover: #c6871f;
+  --accent-tint: #fcefdc;
+  --accent-ink: #2b1a05;
 
   --danger: #b3402c;
   --danger-tint: #fbeeec;
   --warn: #a66a12;
   --warn-tint: #fbf1e2;
-  --success: #0b6e4f;
-  --success-tint: #eef6f2;
+  --success: #15803d;
+  --success-tint: #ecfdf3;
+
+  /* ── Landing palette: warm tonal ramp ──────────────────────
+     Replaces the previous black/white system. That one alternated
+     #0a0a0a sections with #ffffff ones, so every section boundary was
+     a slam between the two ends of the value scale with nothing in
+     between. Here the sections step through one hue family
+     (warm-50 -> 100 -> 200) and only drop to espresso once, at the
+     closing CTA, as a deliberate climax.
+
+     --gold is deliberately identical to the sitewide --accent, so the
+     landing's one spot of colour is the same colour as every button in
+     the app. Nothing below touches --accent/--ink/--bg themselves,
+     which stay the brand used by nav, forms, chat, and quiz.
+
+     CONTRAST CONSTRAINT: --gold on --warm-50 is ~2.1:1 and fails
+     WCAG AA for body text. Gold is therefore only ever a fill (with
+     dark text on it), a large/decorative element, or --gold-deep when
+     it has to be small text on a light ground. On espresso it's
+     ~6.9:1 and safe either way. */
+  --warm-50: #fffdf8;
+  --warm-100: #faf3e8;
+  --warm-200: #f4e9d8;
+  --warm-300: #ecdcc2;
+  --warm-400: #e0cba6;
+
+  --espresso-800: #2a2118;
+  --espresso-900: #1c150e;
+
+  --warm-ink: #3a2e1e;
+  --warm-ink-muted: #6b5b45;
+  --warm-ink-faint: #9a8a72;
+  --warm-line: rgba(58, 46, 30, 0.12);
+  --warm-line-strong: rgba(58, 46, 30, 0.2);
+
+  --gold: #e2a13a;
+  --gold-deep: #b07a1c;
+  --gold-tint: #f7e7c8;
+
+  /* Legacy landing names, repointed at the warm ramp so the bulk of
+     the existing landing CSS follows along without edits. The one place
+     this does NOT work is .section-ink, which was near-black with light
+     text and is now cream with dark text -- that needed a real
+     inversion further down, not a token swap. */
+  --page-ink: var(--espresso-800);
+  --page-ink-2: var(--espresso-900);
+  --page-ink-3: #3a2e1e;
+
+  --parchment: var(--warm-50);
+  --parchment-strong: var(--warm-100);
+  --parchment-line: var(--warm-line);
+  --paper-tint: var(--warm-200);
+
+  --mono-1: var(--warm-ink);
+  --mono-2: var(--warm-ink-muted);
+  --mono-3: #9a8a72;
+  --mono-4: var(--warm-400);
+  --mono-tint: var(--warm-200);
+
 
   --radius-sm: 6px;
   --radius: 10px;
   --radius-lg: 16px;
+  --radius-full: 999px;
 
-  --shadow-sm: 0 1px 2px rgba(20, 22, 26, 0.04);
-  --shadow: 0 4px 16px rgba(20, 22, 26, 0.06);
-  --shadow-lg: 0 12px 32px rgba(20, 22, 26, 0.10);
+  --shadow-sm: 0 1px 2px rgba(18, 19, 26, 0.04);
+  --shadow: 0 4px 16px rgba(18, 19, 26, 0.06);
+  --shadow-lg: 0 12px 32px rgba(18, 19, 26, 0.10);
+  --shadow-float: 0 8px 30px rgba(18, 19, 26, 0.10), 0 2px 8px rgba(18, 19, 26, 0.06);
+  --glow-accent: 0 0 0 1px rgba(226, 161, 58, 0.14), 0 8px 24px rgba(226, 161, 58, 0.22);
+
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-bg-strong: rgba(255, 255, 255, 0.88);
+  --glass-border: rgba(18, 19, 26, 0.07);
+
+  --gradient-accent: linear-gradient(135deg, #c6871f 0%, #e2a13a 55%, #f3c46e 100%);
+  --gradient-mesh: radial-gradient(600px 400px at 15% 0%, rgba(224, 162, 61, 0.16), transparent 60%),
+    radial-gradient(500px 380px at 85% 10%, rgba(195, 69, 63, 0.12), transparent 55%);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 0.15s;
+  --dur: 0.28s;
+  --dur-slow: 0.5s;
 
   --font-display: "Space Grotesk", "Segoe UI", sans-serif;
   --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
   --max-width: 1120px;
+  --nav-height: 56px;
+  --nav-top-offset: 18px;
+  --nav-clearance: 104px;
 }
 
 * { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+/* Deliberately NOT scroll-behavior: smooth. CSS smooth scrolling fights
+   ScrollTrigger's pinning -- the browser animates scrollTop while the
+   pin is recalculating against it, which shows up as jitter and
+   occasionally a stuck pin on the How It Works storyboard. Cost: the
+   footer's /#how-it-works and /#features anchors now jump instantly
+   instead of gliding. */
 
 body {
   margin: 0;
@@ -75,6 +166,13 @@ a { color: inherit; }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  /* Loading indicators are exempt: their motion IS the information (work is
+     happening), not decoration -- freezing them to 0.001ms makes the app
+     look hung instead of busy, which is worse for anyone than a slow spin. */
+  .spinner, .spinner-lg, .loading-dots span {
+    animation-duration: 900ms !important;
+    transition-duration: 150ms !important;
+  }
 }
 
 .container {
@@ -90,101 +188,149 @@ a { color: inherit; }
   flex-direction: column;
 }
 
-.site-main { flex: 1; }
+.site-main { flex: 1; padding-top: var(--nav-clearance); }
 
-/* ── Header ─────────────────────────────────────────────── */
-.site-header {
-  position: sticky;
-  top: 0;
-  z-index: 40;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--border);
+/* ── Floating nav (Dynamic-Island style) ───────────────────
+   Fixed + centered, floats above the page instead of sitting
+   in the document flow -- glass background, soft shadow, pill
+   shape. Framer Motion (FloatingNav.jsx) handles the
+   scroll-driven size/opacity change and the mobile menu
+   reveal; this stylesheet defines the resting visual language
+   both states share. */
+.floating-nav-wrap {
+  position: fixed;
+  top: var(--nav-top-offset);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+  pointer-events: none;
 }
 
-.site-header-inner {
+.floating-nav {
+  pointer-events: auto;
+  width: min(100%, 920px);
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-float);
+}
+
+.floating-nav-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 68px;
+  height: var(--nav-height);
+  padding: 0 8px 0 18px;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   text-decoration: none;
   color: var(--ink);
 }
 
 .brand-mark {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 8px;
-  background: var(--accent);
+  background: var(--gradient-accent);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   flex-shrink: 0;
 }
 
 .brand-name {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 1.02rem;
+  font-size: clamp(0.86rem, 3.4vw, 0.98rem);
   white-space: nowrap;
 }
 
 .nav-desktop {
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: 22px;
 }
 
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 4px;
 }
 
 .nav-link {
   text-decoration: none;
   color: var(--ink-muted);
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   font-weight: 500;
-  transition: color 0.15s;
+  padding: 7px 12px;
+  border-radius: var(--radius-full);
+  transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
 }
-.nav-link:hover { color: var(--ink); }
+.nav-link:hover { color: var(--ink); background: rgba(20, 22, 26, 0.05); }
+
+.floating-nav .btn { padding: 9px 18px; font-size: 0.88rem; }
 
 .nav-toggle {
   display: none;
   background: none;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  width: 40px;
-  height: 40px;
+  border: none;
+  width: 38px;
+  height: 38px;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  color: var(--ink);
+  border-radius: var(--radius-full);
+  transition: background var(--dur-fast) var(--ease-out);
 }
+.nav-toggle:hover { background: rgba(20, 22, 26, 0.05); }
 
-.nav-mobile {
-  display: none;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px 0 16px;
-  border-top: 1px solid var(--border);
+.nav-mobile-panel {
+  overflow: hidden;
+  width: min(100%, 920px);
+  margin-top: 8px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  border-radius: 22px;
+  box-shadow: var(--shadow-float);
+  pointer-events: auto;
 }
-.nav-mobile.open { display: flex; }
-.nav-mobile .nav-link { padding: 10px 4px; }
+.nav-mobile-panel-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px;
+}
+.nav-mobile-panel .nav-link { padding: 11px 14px; text-align: left; width: 100%; }
+.nav-mobile-panel .btn { margin-top: 6px; }
 
 @media (max-width: 760px) {
   .nav-desktop { display: none; }
   .nav-toggle { display: flex; }
+}
+
+@media (max-width: 420px) {
+  :root {
+    --nav-top-offset: 12px;
+    --nav-clearance: 92px;
+  }
+  .floating-nav-wrap { padding: 0 10px; }
+  .floating-nav-inner { padding: 0 6px 0 14px; }
 }
 
 /* ── Buttons ────────────────────────────────────────────── */
@@ -194,7 +340,7 @@ a { color: inherit; }
   justify-content: center;
   gap: 8px;
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-ink);
   border: 1px solid var(--accent);
   border-radius: var(--radius-sm);
   padding: 10px 18px;
@@ -206,8 +352,13 @@ a { color: inherit; }
   transition: background 0.15s, border-color 0.15s, transform 0.1s;
   white-space: nowrap;
 }
-.btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
-.btn:active { transform: translateY(1px); }
+.btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  box-shadow: var(--glow-accent);
+  transform: translateY(-1px);
+}
+.btn:active { transform: translateY(1px); box-shadow: none; }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
 .btn-lg { padding: 13px 24px; font-size: 1rem; border-radius: var(--radius); }
@@ -224,17 +375,178 @@ a { color: inherit; }
 
 .btn-block { width: 100%; }
 
-/* ── Hero ───────────────────────────────────────────────── */
+/* ── Hero: light paper, one gold accent, visual not copy ───
+   Minimal on purpose: an eyebrow, a short headline, one CTA, and a
+   small animated "scene" instead of a screenshot or a paragraph of
+   copy. GSAP (LandingPage.jsx) drives the entrance -- masked word
+   reveal on the headline, a staggered pop-in on the scene -- and a
+   gentle scroll-scrub fade/lift as the section leaves the viewport.
+   The ambient mesh + grid backdrop is the "animated gradient
+   background" from the brief, done in CSS keyframes so
+   prefers-reduced-motion mutes it for free via the global override.
+
+   FIX: the hero now cancels out .site-main's fixed top padding
+   (margin-top: -nav-clearance) and re-applies that same space as its
+   own padding-top. Before, the mesh/grid background only started
+   where the hero box began -- 104px below the top of the page --
+   leaving a flat, undecorated strip behind the floating nav that read
+   as a gap between the nav and the page. Now the hero's background
+   runs all the way to y=0, directly behind the nav, so the nav's
+   existing drop shadow reads clearly against it instead of against
+   flat white. */
 .hero {
-  padding: 76px 0 88px;
-  border-bottom: 1px solid var(--border);
+  position: relative;
+  margin-top: calc(-1 * var(--nav-clearance));
+  padding-top: var(--nav-clearance);
+  min-height: 92vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--warm-50);
+  color: var(--warm-ink);
+}
+
+/* Drifting background fields. CSS keyframes rather than GSAP on
+   purpose: they only animate transform, so they stay on the compositor
+   and cost no JS frame budget, and the global prefers-reduced-motion
+   override at the top of this file stops them with no extra code. */
+.hero-fields {
+  position: absolute;
+  inset: -25%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hero-field {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  will-change: transform;
+}
+.hero-field--1 {
+  width: 46%; height: 46%; left: 4%; top: 14%;
+  background: rgba(226, 161, 58, 0.34);
+  animation: hero-field-a 17s var(--ease-in-out) infinite;
+}
+.hero-field--2 {
+  width: 42%; height: 42%; right: 6%; top: 8%;
+  background: rgba(236, 220, 194, 0.85);
+  animation: hero-field-b 21s var(--ease-in-out) infinite;
+}
+.hero-field--3 {
+  width: 38%; height: 38%; left: 34%; bottom: 4%;
+  background: rgba(176, 122, 28, 0.18);
+  animation: hero-field-a 14s var(--ease-in-out) infinite 2s;
+}
+
+@keyframes hero-field-a {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(9%, 7%) scale(1.16); }
+  66% { transform: translate(-6%, 4%) scale(0.92); }
+}
+@keyframes hero-field-b {
+  0%, 100% { transform: translate(0, 0) scale(1.08); }
+  50% { transform: translate(-10%, -8%) scale(0.88); }
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: repeating-linear-gradient(90deg, rgba(58, 46, 30, 0.03) 0 1px, transparent 1px 64px);
+  mask-image: radial-gradient(90% 70% at 50% 10%, #000 55%, transparent 100%);
 }
 
 .hero-grid {
+  position: relative;
+  z-index: 1;
+  width: 100%;
   display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  gap: 56px;
+  grid-template-columns: 1fr 0.85fr;
+  gap: 24px;
   align-items: center;
+  padding: 48px 0 64px;
+}
+
+.hero-copy { max-width: 540px; }
+
+/* FIX: was max-width: 13ch, which is barely two words wide -- far
+   narrower than the actual headline ("Lectures, turned into notes
+   you'll study."). At that width the line-wrap made the heading read
+   as a cut-off fragment instead of a complete sentence. 22ch keeps a
+   deliberate multi-line break without truncating the thought. */
+.hero-title {
+  color: var(--warm-ink);
+  font-size: clamp(2.3rem, 5.4vw, 3.7rem);
+  max-width: 22ch;
+  letter-spacing: -0.02em;
+  margin: 20px 0 26px;
+}
+
+/* Gradient text: starts at --gold-deep rather than --gold so the
+   lightest point of the run still clears contrast against --warm-50.
+   Plain --gold here would be ~2.1:1. */
+.hero-title .accent-word {
+  background: linear-gradient(120deg, var(--gold-deep) 0%, #8f6316 55%, var(--warm-ink) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Masked per-word reveal: each word sits in an overflow-hidden box so
+   GSAP can slide the inner span up from below without any paid
+   split-text plugin -- cheap, and reads as a premium reveal anyway. */
+.reveal-word { overflow: hidden; display: inline-block; vertical-align: top; }
+.reveal-word-inner { display: inline-block; will-change: transform; }
+
+.hero-ctas {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.hero-cta-note {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+}
+
+.hero-scroll-cue {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-faint);
+}
+.hero-scroll-cue span {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.hero-scroll-cue svg { animation: hero-cue-bob 1.6s ease-in-out infinite; }
+@keyframes hero-cue-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(5px); }
+}
+
+@media (max-width: 900px) {
+  .hero { min-height: auto; padding-bottom: 56px; }
+  .hero-grid { grid-template-columns: 1fr; padding: 24px 0 40px; gap: 40px; text-align: center; }
+  .hero-copy { max-width: none; margin: 0 auto; }
+  .hero-title { max-width: none; margin-left: auto; margin-right: auto; }
+  .hero-ctas { justify-content: center; }
+  .hero-scene { margin: 0 auto; }
 }
 
 .eyebrow {
@@ -245,134 +557,190 @@ a { color: inherit; }
   font-size: 0.75rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--accent);
-  background: var(--accent-tint);
+  color: var(--gold-deep);
+  background: var(--gold-tint);
   padding: 6px 12px;
   border-radius: 999px;
-  margin-bottom: 20px;
 }
 
-.hero-title {
-  font-size: clamp(2.1rem, 4.4vw, 3.4rem);
-  margin-bottom: 20px;
+/* ── Hero scene: pipeline panel ─────────────────────────────
+   One panel cycling through the three things the product actually
+   does -- recording, notes, quiz -- rather than an ambient
+   illustration that plays once and then idles. All three stages are
+   stacked in the same grid cell and LandingPage.jsx cross-fades
+   between them on a 9s loop; under reduced motion it pins the Notes
+   stage and stops.
+
+   The stages sit in a 1x1 grid rather than position:absolute so the
+   panel's height is driven by the tallest stage. Absolute positioning
+   would collapse the panel to zero height and make it jump as the
+   stage changed. */
+.hero-scene {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin-left: auto;
+  isolation: isolate;
 }
 
-.hero-title em {
-  font-style: normal;
-  color: var(--accent);
-}
-
-.hero-subtitle {
-  font-size: 1.08rem;
-  color: var(--ink-muted);
-  max-width: 46ch;
-  margin-bottom: 32px;
-}
-
-.hero-ctas {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 28px;
-}
-
-.hero-microcopy {
-  font-size: 0.85rem;
-  color: var(--ink-faint);
-}
-
-/* Signature element: raw -> clean transcript transform card */
-.transform-card {
-  background: var(--bg-subtle);
-  border: 1px solid var(--border);
+/* Lifted to match the Journey cards: bigger, brighter, and thrown much
+   further off the background so the panel reads as a real surface
+   floating over the hero rather than a tinted box sitting on it. */
+.pipeline {
+  position: relative;
+  display: grid;
+  background: rgba(255, 253, 248, 0.94);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid var(--warm-line);
   border-radius: var(--radius-lg);
-  padding: 22px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 34px 74px rgba(58, 46, 30, 0.18), 0 4px 14px rgba(58, 46, 30, 0.08);
+  padding: 30px 32px;
+  min-height: 300px;
+  will-change: transform;
 }
 
-.transform-panel {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px 18px;
+/* A soft gold halo behind the panel, so the hero has the same
+   "spotlight on the active thing" treatment as the Journey section. */
+.pipeline::before {
+  content: "";
+  position: absolute;
+  inset: -14%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(226, 161, 58, 0.34), transparent 72%);
+  filter: blur(24px);
+  pointer-events: none;
 }
 
-.transform-label {
+/* Live-recording pip on the first stage's label. */
+.pipe-pip {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: pipe-pip-pulse 1.6s ease-in-out infinite;
+}
+@keyframes pipe-pip-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.75); }
+}
+
+.pipe-stage {
+  grid-area: 1 / 1;
+  align-self: start;
+  width: 100%;
+}
+
+.pipe-label {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--ink-faint);
-  margin-bottom: 10px;
+  color: var(--gold-deep);
+  margin-bottom: 16px;
+}
+
+/* Bars are scaled from a 1px-tall base via transform so the equalizer
+   animates on the compositor instead of triggering layout 16 times a
+   frame. */
+.pipe-bars {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
+  height: 76px;
+  margin-bottom: 18px;
+}
+.pipe-bar {
+  flex: 1;
+  height: 100%;
+  background: var(--gold);
+  border-radius: 2px;
+  transform: scaleY(0.16);
+  transform-origin: center;
+  will-change: transform;
 }
 
-.transform-label .dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--ink-faint);
-}
-.transform-label.clean .dot { background: var(--accent); }
-.transform-label.clean { color: var(--accent); }
-
-.transform-raw-text {
-  font-family: var(--font-mono);
-  font-size: 0.86rem;
-  line-height: 1.7;
-  color: var(--ink-muted);
-  direction: rtl;
-  unicode-bidi: plaintext;
-  text-align: right;
-}
-.transform-raw-text .en { direction: ltr; unicode-bidi: embed; }
-
-.transform-arrow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 0;
-  color: var(--accent);
-}
-
-.transform-clean-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.transform-clean-list li {
-  display: flex;
-  gap: 10px;
-  font-size: 0.9rem;
-  color: var(--ink);
-}
-.transform-clean-list li::before {
-  content: "✓";
-  color: var(--accent);
+.pipe-langs { display: flex; gap: 6px; }
+.pipe-lang {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--warm-200);
+  color: var(--warm-ink);
+  font-size: 0.72rem;
   font-weight: 700;
-  flex-shrink: 0;
 }
-.transform-clean-list .term {
-  font-family: var(--font-mono);
-  background: var(--accent-tint);
-  color: var(--accent);
-  padding: 1px 6px;
+.pipe-lang--gold { background: var(--gold); color: var(--accent-ink); }
+
+.pipe-note-head {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--warm-ink);
+  margin-bottom: 14px;
+}
+.pipe-line {
+  height: 7px;
   border-radius: 4px;
-  font-size: 0.82rem;
+  background: var(--warm-300);
+  margin-bottom: 9px;
 }
+.pipe-cite {
+  margin-top: 14px;
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--gold-deep);
+  background: var(--gold-tint);
+  padding: 4px 9px;
+  border-radius: 6px;
+}
+
+.pipe-question {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--warm-ink);
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+.pipe-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.84rem;
+  color: var(--warm-ink-muted);
+  padding: 8px 10px;
+  border: 1px solid var(--warm-line);
+  border-radius: 8px;
+  margin-bottom: 7px;
+}
+.pipe-option.is-correct {
+  border-color: var(--gold);
+  background: var(--gold-tint);
+  color: var(--warm-ink);
+  font-weight: 600;
+}
+.pipe-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid var(--warm-400);
+  flex: none;
+}
+.pipe-option.is-correct .pipe-dot { background: var(--gold); border-color: var(--gold); }
 
 @media (max-width: 900px) {
-  .hero-grid { grid-template-columns: 1fr; gap: 40px; }
-  .hero { padding: 48px 0 56px; }
+  .hero-scene { margin: 0 auto; }
+  .pipeline { text-align: left; }
 }
 
 /* ── Section scaffolding ───────────────────────────────── */
 .section { padding: 80px 0; }
 .section-subtle { background: var(--bg-subtle); }
 .section-border-top { border-top: 1px solid var(--border); }
+.section-parchment-soft { background: var(--parchment-strong); }
 
 .section-head {
   max-width: 60ch;
@@ -391,90 +759,704 @@ a { color: inherit; }
 .section-title { font-size: clamp(1.5rem, 2.6vw, 2rem); margin-bottom: 12px; }
 .section-desc { color: var(--ink-muted); font-size: 1rem; }
 
+.section-paper { background: var(--paper-tint); }
+
 @media (max-width: 640px) {
   .section { padding: 56px 0; }
 }
 
-/* ── How it works ───────────────────────────────────────── */
-.steps {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 32px;
+/* ── How it works: vertical scroll timeline ──────────────────
+   One layout for every width -- no pin, no horizontal
+   scroll-jacking, no separate mobile duplicate to keep in sync.
+   LandingPage.jsx fades/lifts each step in once as it enters the
+   viewport (marketing-only scroll-reveal recipe), lights up a gold
+   marker on whichever step is centered in view, and scrubs a
+   gradient fill down the track in step with scroll through the
+   section -- the exact same interaction on a phone as on a 27"
+   monitor, just narrower spacing below 640px. */
+/* Inverted from the old near-black treatment to the ramp's cream step.
+   This is the one place the legacy-token repoint at the top of the file
+   couldn't carry: the section was #0a0a0a with white text, and every
+   text/border/marker colour inside it assumed a dark ground. */
+.section-ink {
+  background: linear-gradient(180deg, var(--warm-100) 0%, var(--warm-200) 100%);
+  color: var(--warm-ink);
+  position: relative;
+  overflow: hidden;
+}
+/* Section texture: a fine diagonal hatch. Each landing section gets its
+   own pattern so they read as distinct places rather than the same page
+   in five tints -- but all of them are built from the warm ink at very
+   low alpha, so the variety never breaks the one-hue rule. Pseudo-
+   elements, so no extra DOM and no cost to the animation budget. */
+.section-ink::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(58, 46, 30, 0.035) 0 1px,
+    transparent 1px 11px
+  );
+  mask-image: radial-gradient(120% 90% at 50% 40%, #000 40%, transparent 100%);
+}
+.section-ink > .container { position: relative; z-index: 1; }
+
+.section-ink .section-eyebrow { color: var(--gold-deep); }
+.section-ink .section-title { color: var(--warm-ink); }
+.section-ink .section-desc { color: var(--warm-ink-muted); }
+
+/* Default (mobile / reduced-motion) = vertical timeline. The horizontal
+   storyboard is layered on in the media query below, whose condition
+   string is identical to DESKTOP_MQ in LandingPage.jsx -- if those two
+   ever disagree the track overflows with no pin driving it. */
+.hiw-viewport { position: relative; }
+
+.hiw-timeline {
+  position: relative;
+  max-width: 640px;
+  margin-top: 12px;
+  padding-left: 30px;
 }
 
-.step-number {
+.hiw-track {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 0;
+  width: 2px;
+  background: var(--warm-line-strong);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.hiw-track-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: top center;
+  background: linear-gradient(180deg, var(--gold) 0%, var(--gold-deep) 100%);
+}
+
+.hiw-item {
+  position: relative;
+  padding: 0 0 52px 24px;
+}
+.hiw-item:last-child { padding-bottom: 0; }
+
+.hiw-item-marker {
+  position: absolute;
+  left: -5px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--warm-400);
+  /* Ring colour must match the section ground, not the old page-ink --
+     it's masking the rail behind the marker. */
+  box-shadow: 0 0 0 4px var(--warm-100);
+  transition: background var(--dur) var(--ease-out), transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
+}
+.hiw-item.active .hiw-item-marker {
+  background: var(--gold);
+  transform: scale(1.3);
+  box-shadow: 0 0 0 4px var(--warm-100), 0 0 0 5px rgba(226, 161, 58, 0.45);
+}
+
+.hiw-item-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gold-tint);
+  color: var(--gold-deep);
+  margin-bottom: 14px;
+  transition: background var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
+}
+.hiw-item.active .hiw-item-icon { background: var(--gold); color: var(--accent-ink); }
+
+.hiw-item-number {
   font-family: var(--font-mono);
   font-size: 0.8rem;
-  color: var(--accent);
-  margin-bottom: 14px;
+  letter-spacing: 0.06em;
+  color: var(--gold-deep);
+  opacity: 0.6;
+  margin-bottom: 6px;
+  transition: opacity var(--dur) var(--ease-out);
 }
+.hiw-item.active .hiw-item-number { opacity: 1; }
 
-.step-title { font-size: 1.1rem; margin-bottom: 8px; }
-.step-desc { color: var(--ink-muted); font-size: 0.94rem; }
+.hiw-item-title { color: var(--warm-ink); font-size: clamp(1.2rem, 2.6vw, 1.6rem); margin-bottom: 8px; }
+.hiw-item-desc { color: var(--warm-ink-muted); font-size: 0.98rem; max-width: 52ch; }
 
-.step-connector {
-  display: none;
-}
-
-@media (max-width: 760px) {
-  .steps { grid-template-columns: 1fr; gap: 28px; }
-}
-
-/* ── Feature cards ──────────────────────────────────────── */
-.feature-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-
-.feature-card {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 26px;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-.feature-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow); }
-
-.feature-icon {
-  width: 40px; height: 40px;
-  border-radius: 10px;
-  background: var(--accent-tint);
-  color: var(--accent);
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 16px;
-}
-
-.feature-title { font-size: 1.02rem; margin-bottom: 8px; }
-.feature-desc { color: var(--ink-muted); font-size: 0.92rem; }
+/* Progress bar for the pinned storyboard only -- hidden by default so
+   the vertical path (which has its own rail) doesn't show two. */
+.hiw-progress { display: none; }
 
 @media (max-width: 640px) {
-  .feature-grid { grid-template-columns: 1fr; }
+  .hiw-timeline { padding-left: 24px; }
+  .hiw-item { padding-bottom: 40px; padding-left: 22px; }
+  .hiw-item-icon { width: 40px; height: 40px; margin-bottom: 10px; }
 }
 
-/* ── CTA band ───────────────────────────────────────────── */
+/* ── Horizontal storyboard (desktop, motion allowed) ─────────
+   MUST match DESKTOP_MQ in LandingPage.jsx exactly. Layout lives here,
+   motion lives there; the same step markup serves both paths so a
+   mobile fallback can't drift out of sync with the desktop version. */
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .hiw-section { padding: 0; display: flex; flex-direction: column; justify-content: center; min-height: 100vh; }
+  /* .container is a flex item here, so it shrinks to its content instead
+     of filling the line. The progress bar has no intrinsic width, which
+     collapsed its container to just its own 24px padding either side and
+     made the bar invisible. */
+  .hiw-section > .container { width: 100%; }
+  .hiw-section .section-head { margin-bottom: 32px; }
+
+  .hiw-viewport { overflow: hidden; }
+
+  .hiw-timeline {
+    display: flex;
+    gap: 24px;
+    max-width: none;
+    margin-top: 0;
+    padding-left: 0;
+    width: max-content;
+    will-change: transform;
+  }
+
+  /* The vertical rail belongs to the fallback path only. */
+  .hiw-track { display: none; }
+
+  .hiw-item {
+    flex: 0 0 clamp(280px, 30vw, 360px);
+    padding: 28px 26px;
+    background: var(--warm-50);
+    border: 1px solid var(--warm-line);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 6px 20px rgba(58, 46, 30, 0.06);
+    transition: border-color var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
+  }
+  .hiw-item.active {
+    border-color: rgba(226, 161, 58, 0.5);
+    box-shadow: 0 12px 30px rgba(58, 46, 30, 0.12);
+  }
+
+  /* The dot marker is a rail affordance; the card border carries the
+     active state here instead. */
+  .hiw-item-marker { display: none; }
+  .hiw-item-desc { max-width: none; }
+
+  .hiw-progress {
+    display: block;
+    position: relative;
+    height: 3px;
+    margin-top: 36px;
+    border-radius: 999px;
+    background: var(--warm-300);
+    overflow: hidden;
+  }
+  .hiw-progress-fill {
+    position: absolute;
+    inset: 0;
+    transform: scaleX(0);
+    transform-origin: left center;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--gold) 0%, var(--gold-deep) 100%);
+  }
+}
+
+.features-checklist {
+  list-style: none;
+  margin: 0 0 32px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.features-check-item {
+  position: relative;
+  padding-left: 30px;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--warm-ink);
+}
+.features-check-item::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--gold-tint);
+  color: var(--gold-deep);
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.features-cta-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ── Journey: pinned full-viewport walkthrough ──────────────
+   Mobile-first the three stages simply stack and scroll. The media
+   query below (identical condition to DESKTOP_MQ in LandingPage.jsx)
+   collapses them onto one another so the pinned timeline can cross-fade
+   between them in place. */
+.journey-section {
+  position: relative;
+  overflow: hidden;
+  background: var(--warm-200);
+}
+
+/* Journey texture: a dot grid with a warm spotlight blooming behind the
+   card, so the stage that's animating sits in the brightest part of the
+   section. */
+.journey-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(58, 46, 30, 0.13) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(90% 80% at 60% 50%, #000 25%, transparent 78%);
+}
+.journey-section::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(46% 52% at 66% 50%, rgba(226, 161, 58, 0.3), transparent 70%);
+}
+
+.journey-inner { position: relative; z-index: 1; }
+.journey-head { margin-bottom: 36px; }
+
+.journey-stage { margin-bottom: 56px; }
+.journey-stage:last-child { margin-bottom: 0; }
+
+.jrn-copy { margin-bottom: 22px; }
+.jrn-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: var(--gold-deep);
+  margin-bottom: 10px;
+}
+.jrn-title {
+  font-size: clamp(1.5rem, 3.4vw, 2.4rem);
+  color: var(--warm-ink);
+  margin-bottom: 10px;
+}
+.jrn-desc {
+  color: var(--warm-ink-muted);
+  font-size: 1rem;
+  max-width: 46ch;
+}
+
+/* The card is the thing that should "pop": a big light surface lifted
+   well off the section ground, so when the pinned timeline scales it up
+   it reads as stepping forward rather than just fading. */
+.jrn-card {
+  background: var(--warm-50);
+  border: 1px solid var(--warm-line);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 30px 70px rgba(58, 46, 30, 0.16), 0 4px 12px rgba(58, 46, 30, 0.07);
+  padding: 26px 28px;
+  will-change: transform;
+}
+
+.jrn-filerow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.jrn-fileicon {
+  width: 38px; height: 38px;
+  border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--gold-tint);
+  color: var(--gold-deep);
+  flex: none;
+}
+.jrn-filename {
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  color: var(--warm-ink);
+}
+.jrn-filesize {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--warm-ink-faint);
+}
+
+.jrn-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--warm-200);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.jrn-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.jrn-wave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 66px;
+}
+.jrn-tick {
+  flex: 1;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--gold);
+  opacity: 0.8;
+  transform: scaleY(0.08);
+}
+
+.jrn-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.94rem;
+  line-height: 1.6;
+  color: var(--warm-ink);
+  margin-bottom: 12px;
+}
+.jrn-line--muted { color: var(--warm-ink-faint); }
+.jrn-line:last-child { margin-bottom: 0; }
+.jrn-tag-sm {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: var(--warm-200);
+  color: var(--warm-ink);
+}
+.jrn-tag-sm--gold { background: var(--gold); color: var(--accent-ink); }
+
+.jrn-notehead {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--warm-ink);
+  margin-bottom: 14px;
+}
+.jrn-noteline {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--warm-300);
+  margin-bottom: 10px;
+}
+.jrn-answer {
+  margin-top: 18px;
+  background: var(--gold-tint);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 0.94rem;
+  line-height: 1.5;
+  color: var(--warm-ink);
+}
+.jrn-cite {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 9px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--gold-deep);
+}
+
+.journey-dots { display: none; }
+
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .journey-section {
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  /* Same flex-item collapse as .hiw-section -- .container shrinks to
+     content unless told to fill. */
+  .journey-section > .container { width: 100%; }
+
+  /* All three stages share one grid cell so the timeline can cross-fade
+     them in place; the tallest one sets the height, so nothing jumps. */
+  .journey-stages { display: grid; }
+  .journey-stage {
+    grid-area: 1 / 1;
+    margin-bottom: 0;
+    display: grid;
+    grid-template-columns: 0.85fr 1fr;
+    gap: 56px;
+    align-items: center;
+  }
+  .jrn-copy { margin-bottom: 0; }
+
+  .journey-dots {
+    display: flex;
+    gap: 8px;
+    margin-top: 40px;
+  }
+  .journey-dot {
+    width: 30px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--warm-400);
+    transition: background var(--dur) var(--ease-out), width var(--dur) var(--ease-out);
+  }
+  .journey-dot.active { background: var(--gold); width: 52px; }
+}
+
+/* ── Claims band ────────────────────────────────────────────
+   The journey shows; this tells, in four lines. */
+.section-claims {
+  position: relative;
+  overflow: hidden;
+  background: var(--warm-100);
+}
+/* Claims texture: one soft off-centre wash, no pattern -- a visual
+   breather between the immersive journey and the FAQ's denser list. */
+.section-claims::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(70% 120% at 12% 30%, rgba(226, 161, 58, 0.16), transparent 62%);
+}
+.claims-inner { position: relative; z-index: 1; }
+.claims-inner .features-checklist { max-width: 720px; }
+
+/* ── FAQ ────────────────────────────────────────────────────
+   Sits between Features (skin) and the CTA's espresso, taking the next
+   step down the ramp so the run into the dark anchor stays gradual.
+
+   The panel collapse is grid-template-rows: 0fr -> 1fr. That's the only
+   CSS-only way to transition to a height derived from the content --
+   max-height with a guessed value either clips long answers or eases
+   against a height the content never reaches, which is what makes
+   hand-rolled accordions feel wrong. */
+/* FAQ texture: widely-spaced vertical rules, the calmest pattern of the
+   set, so the accordion stays the only thing asking for attention. */
+.section-faq {
+  position: relative;
+  overflow: hidden;
+  background: var(--warm-300);
+}
+.section-faq::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(58, 46, 30, 0.045) 0 1px,
+    transparent 1px 78px
+  );
+  mask-image: linear-gradient(180deg, transparent 0%, #000 22%, #000 78%, transparent 100%);
+}
+.section-faq > .container { position: relative; z-index: 1; }
+
+.faq-list {
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.faq-item {
+  background: var(--warm-50);
+  border: 1px solid var(--warm-line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
+}
+.faq-item.open {
+  border-color: rgba(226, 161, 58, 0.5);
+  box-shadow: 0 8px 22px rgba(58, 46, 30, 0.09);
+}
+
+.faq-question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--warm-ink);
+}
+.faq-question:hover { background: var(--warm-100); }
+
+.faq-chevron {
+  flex: none;
+  color: var(--gold-deep);
+  transition: transform var(--dur) var(--ease-out);
+}
+.faq-item.open .faq-chevron { transform: rotate(180deg); }
+
+.faq-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur) var(--ease-out);
+}
+.faq-item.open .faq-panel { grid-template-rows: 1fr; }
+
+.faq-panel-inner {
+  overflow: hidden;
+  /* visibility (not just zero height) is what actually takes a closed
+     answer out of the tab order and the accessibility tree. The delay
+     keeps it visible for the length of the collapse so it doesn't
+     vanish before the animation finishes. */
+  visibility: hidden;
+  transition: visibility 0s linear var(--dur);
+}
+.faq-item.open .faq-panel-inner {
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.faq-panel-inner p {
+  padding: 0 20px 20px;
+  color: var(--warm-ink-muted);
+  font-size: 0.94rem;
+  max-width: 68ch;
+}
+
+@media (max-width: 640px) {
+  .faq-question { padding: 15px 16px; font-size: 0.94rem; }
+  .faq-panel-inner p { padding: 0 16px 16px; }
+}
+
+/* ── CTA band ───────────────────────────────────────────────
+   The single espresso anchor at the bottom of the warm ramp -- the
+   page's only dark ground, and its climax. Gold reads ~6.9:1 here, so
+   unlike on the light sections it's safe as text as well as fill.
+
+   The outer section carries a gradient from the Features skin tone
+   down into the footer's espresso, so the one big value jump on the
+   page is bridged rather than butted. */
+.section-cta-outer {
+  background: linear-gradient(180deg, var(--warm-300) 0%, var(--warm-400) 100%);
+}
+
 .cta-band {
-  background: var(--accent);
+  background: linear-gradient(160deg, var(--espresso-800) 0%, var(--espresso-900) 100%);
   color: #fff;
   border-radius: var(--radius-lg);
   padding: 56px 40px;
   text-align: center;
   margin: 0 24px;
+  position: relative;
+  overflow: hidden;
 }
-.cta-band h2 { color: #fff; margin-bottom: 12px; }
-.cta-band p { color: rgba(255,255,255,0.82); max-width: 48ch; margin: 0 auto 28px; }
-.cta-band .btn { background: #fff; color: var(--accent); border-color: #fff; }
-.cta-band .btn:hover { background: rgba(255,255,255,0.9); }
+.cta-band::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10%;
+  background: radial-gradient(420px 260px at 80% 0%, rgba(226, 161, 58, 0.28), transparent 60%);
+  pointer-events: none;
+}
+.cta-band > * { position: relative; z-index: 1; }
+.cta-band h2 { color: var(--warm-50); margin-bottom: 12px; font-size: clamp(1.5rem, 3vw, 2.1rem); }
+.cta-band p { color: rgba(255, 253, 248, 0.78); max-width: 48ch; margin: 0 auto 28px; }
+.cta-band .btn { background: var(--gold); color: var(--accent-ink); border-color: var(--gold); }
+.cta-band .btn:hover { background: var(--gold-deep); border-color: var(--gold-deep); }
 
 @media (max-width: 640px) {
   .cta-band { padding: 40px 24px; margin: 0 16px; }
 }
 
-/* ── Footer ─────────────────────────────────────────────── */
-.site-footer {
-  border-top: 1px solid var(--border);
-  padding: 44px 0 32px;
+/* ── Landing scroll-progress rail ──────────────────────────
+   Track legend runs the warm ramp top-to-bottom in the same order the
+   sections use it, so it reads as a legend for the page rather than
+   pure decoration. GSAP drives the marker against total page scroll. */
+.landing-rail {
+  position: fixed;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: min(46vh, 420px);
+  width: 3px;
+  z-index: 40;
+  pointer-events: none;
+  display: none;
 }
+.landing-rail-track {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  background: linear-gradient(
+    180deg,
+    var(--gold) 0%,
+    var(--gold-deep) 40%,
+    var(--warm-ink-muted) 72%,
+    var(--espresso-900) 100%
+  );
+  opacity: 0.45;
+}
+.landing-rail-marker {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 9px;
+  height: 9px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 0 3px rgba(255, 253, 248, 0.7), 0 0 14px 2px rgba(226, 161, 58, 0.55);
+  will-change: top;
+}
+
+@media (min-width: 1180px) {
+  .landing-rail { display: block; }
+}
+
+/* ── Footer ───────────────────────────────────────────────
+   The deepest step of the warm ramp. Note this footer is shared via
+   Layout.jsx with /login and /signup, so the espresso treatment shows
+   up on those two pages as well -- intentional, and the only part of
+   them this pass touches. */
+.site-footer {
+  background: var(--espresso-900);
+  color: rgba(255, 253, 248, 0.72);
+  padding: 52px 0 36px;
+}
+.site-footer .brand-name { color: var(--warm-50); }
+.site-footer .brand-mark { background: var(--gold); color: var(--accent-ink); }
 
 .footer-top {
   display: flex;
@@ -486,7 +1468,7 @@ a { color: inherit; }
 }
 
 .footer-tagline {
-  color: var(--ink-muted);
+  color: rgba(255, 253, 248, 0.6);
   font-size: 0.9rem;
   max-width: 36ch;
   margin-top: 10px;
@@ -502,125 +1484,149 @@ a { color: inherit; }
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--ink-faint);
+  color: var(--gold);
   margin-bottom: 12px;
 }
 
 .footer-col a {
   display: block;
   text-decoration: none;
-  color: var(--ink-muted);
+  color: rgba(255, 253, 248, 0.66);
   font-size: 0.9rem;
   padding: 4px 0;
 }
-.footer-col a:hover { color: var(--ink); }
+.footer-col a:hover { color: var(--warm-50); }
 
 .footer-bottom {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(255, 253, 248, 0.12);
   padding-top: 20px;
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 8px;
   font-size: 0.82rem;
-  color: var(--ink-faint);
+  color: rgba(255, 253, 248, 0.45);
 }
 
 /* ══════════════════════════════════════════════════════════
    Auth screens (login / signup)
+   Rebuilt to run on the landing page's own palette and layout instead
+   of a separate dark two-column split with its own graphic -- warm
+   parchment background, the hero's faint grid-line texture (no color
+   blobs, no watermark), an eyebrow + gradient-word headline styled
+   exactly like the hero title, sitting above a single centered card.
+   Same single-column, "reduce copy, let the type/color carry it"
+   composition the landing hero settled on in its own centered rework.
    ══════════════════════════════════════════════════════════ */
 .auth-shell {
-  min-height: calc(100vh - 68px);
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-}
-
-.auth-side {
-  position: relative;
-  background: var(--ink);
-  color: #fff;
-  padding: 56px;
+  min-height: calc(100vh - var(--nav-clearance));
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  padding: 56px 24px 72px;
+  position: relative;
   overflow: hidden;
+  isolation: isolate;
+  background: var(--warm-50);
 }
 
-.auth-side::before {
+/* Same repeating-line texture as .hero::after, masked to fade out
+   toward the card -- ties the screen to the landing page's surface
+   without a blob or a watermark sitting behind the copy. */
+.auth-shell::before {
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(560px 420px at 15% 12%, rgba(11, 110, 79, 0.55), transparent 60%),
-    radial-gradient(480px 380px at 90% 85%, rgba(11, 110, 79, 0.35), transparent 60%);
+  z-index: 0;
+  background: repeating-linear-gradient(90deg, rgba(58, 46, 30, 0.035) 0 1px, transparent 1px 64px);
+  mask-image: radial-gradient(85% 65% at 50% 0%, #000 45%, transparent 100%);
+  -webkit-mask-image: radial-gradient(85% 65% at 50% 0%, #000 45%, transparent 100%);
   pointer-events: none;
 }
 
-.auth-side-top { position: relative; z-index: 1; }
-.auth-side-bottom { position: relative; z-index: 1; }
-
-.auth-side-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  color: #fff;
-}
-.auth-side-brand .brand-mark { background: #fff; color: var(--accent); }
-.auth-side-brand .brand-name { color: #fff; }
-
-.auth-side-title {
-  font-size: clamp(1.6rem, 2.8vw, 2.15rem);
-  margin: 40px 0 14px;
-  max-width: 15ch;
-}
-.auth-side-title em { font-style: normal; color: #7fe3bd; }
-
-.auth-side-desc {
-  color: rgba(255, 255, 255, 0.72);
-  max-width: 38ch;
-  font-size: 0.98rem;
-}
-
-.auth-side-points {
-  list-style: none;
-  margin: 32px 0 0;
-  padding: 0;
+.auth-hero {
+  position: relative;
+  z-index: 1;
+  max-width: 500px;
+  text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  align-items: center;
 }
-.auth-side-points li {
+.auth-hero .eyebrow { margin-bottom: 18px; }
+
+.auth-hero-title {
+  color: var(--warm-ink);
+  font-size: clamp(1.6rem, 3.6vw, 2.25rem);
+  letter-spacing: -0.01em;
+  max-width: 20ch;
+  margin: 0 0 14px;
+}
+/* Same gradient-text recipe as .hero-title .accent-word. */
+.auth-hero-title .accent-word {
+  background: linear-gradient(120deg, var(--gold-deep) 0%, #8f6316 55%, var(--warm-ink) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.auth-hero-desc {
+  color: var(--warm-ink-muted);
+  font-size: 0.95rem;
+  max-width: 40ch;
+  margin: 0 0 22px;
+}
+
+.auth-hero-points {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  color: rgba(255, 255, 255, 0.88);
-  font-size: 0.92rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 20px;
 }
-.auth-side-points li::before {
+.auth-hero-points li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.85rem;
+  color: var(--warm-ink-muted);
+  white-space: nowrap;
+}
+.auth-hero-points li::before {
   content: "✓";
-  color: #7fe3bd;
+  color: var(--gold-deep);
   font-weight: 700;
   flex-shrink: 0;
 }
 
-.auth-side-quote {
+.auth-hero-quote {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.76rem;
+  color: var(--warm-ink-faint);
   letter-spacing: 0.02em;
 }
 
 .auth-main {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 24px;
+  width: 100%;
 }
 
 .auth-card {
   width: 100%;
   max-width: 380px;
+  background: #fff;
+  border: 1px solid var(--warm-line);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-lg);
 }
 
 .auth-card-head { margin-bottom: 28px; }
@@ -720,9 +1726,435 @@ a { color: inherit; }
   margin-bottom: 20px;
 }
 
+@media (max-width: 560px) {
+  .auth-shell { padding: 40px 16px 56px; gap: 32px; }
+  .auth-card { padding: 24px; }
+  .auth-hero-points { flex-direction: column; align-items: center; gap: 8px; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   App workspace shell (sidebar + main pane)
+   Claude-AI/ChatGPT-style: a persistent collapsible sidebar replaces
+   the floating marketing nav for everything under /app. Desktop:
+   fixed-width column, collapsible to an icon rail. Mobile (<901px):
+   hidden by default, opened as an off-canvas drawer -- both the
+   static aside and the drawer render the same content, matching the
+   desktop/mobile split FloatingNav already uses, with CSS (not JS)
+   deciding which is visible at a given width.
+   ══════════════════════════════════════════════════════════ */
+.app-shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(560px 380px at 0% 0%, rgba(226, 161, 58, 0.07), transparent 60%),
+    radial-gradient(480px 360px at 100% 15%, rgba(195, 69, 63, 0.05), transparent 55%),
+    var(--bg);
+}
+
+/* Glass rail, same visual family as .floating-nav (blurred translucent
+   panel over the shell's ambient mesh) rather than a flat subtle-gray
+   fill -- so the "Claude-AI workspace" chrome reads as the same product
+   as the landing page, not a plainer app bolted on afterward. */
+.app-sidebar {
+  width: 272px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  padding: 14px 10px;
+  transition: width var(--dur) var(--ease-out);
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+.app-sidebar.collapsed { width: 68px; }
+
+.sidebar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px 14px;
+}
+.app-sidebar.collapsed .sidebar-top { flex-direction: column; gap: 10px; }
+.sidebar-brand { gap: 8px; min-width: 0; }
+.sidebar-brand .brand-name { overflow: hidden; text-overflow: ellipsis; }
+
+.sidebar-collapse-btn {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--ink-faint);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.sidebar-collapse-btn:hover { background: var(--bg); color: var(--ink); }
+
+.sidebar-new-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.87rem;
+  color: var(--ink);
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+.sidebar-new-btn:hover { border-color: var(--accent); background: #fff; box-shadow: var(--glow-accent); transform: translateY(-1px); }
+.app-sidebar.collapsed .sidebar-new-btn { padding: 10px; }
+
+.sidebar-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--ink-faint);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.sidebar-search:focus-within { border-color: var(--accent); }
+.sidebar-search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.85rem;
+  width: 100%;
+  font-family: var(--font-body);
+  color: var(--ink);
+}
+
+.sidebar-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 -2px;
+  padding: 2px;
+}
+
+.sidebar-empty { padding: 14px 8px; font-size: 0.85rem; }
+
+.sidebar-lecture {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--ink-muted);
+  transition: background 0.15s, color 0.15s;
+}
+.sidebar-lecture:hover { background: rgba(255, 255, 255, 0.6); color: var(--ink); }
+.sidebar-lecture.active {
+  background: linear-gradient(90deg, var(--accent-tint) 0%, rgba(255, 255, 255, 0.75) 100%);
+  color: var(--ink);
+  box-shadow: inset 2px 0 0 var(--accent), var(--shadow-sm);
+}
+.app-sidebar.collapsed .sidebar-lecture { justify-content: center; }
+
+.sidebar-lecture-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; background: var(--ink-faint); }
+.dot-completed { background: var(--success); }
+.dot-processing { background: var(--warn); }
+.dot-pending { background: var(--ink-faint); }
+.dot-failed { background: var(--danger); }
+
+.sidebar-lecture-text { display: flex; flex-direction: column; min-width: 0; }
+.sidebar-lecture-title {
+  font-size: 0.87rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sidebar-lecture-sub {
+  font-size: 0.74rem;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-lecture-avatar {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid var(--border);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-muted);
+  flex-shrink: 0;
+}
+.sidebar-lecture-avatar::after {
+  content: "";
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-subtle);
+  background: var(--ink-faint);
+}
+.sidebar-lecture-avatar[data-status="completed"]::after { background: var(--success); }
+.sidebar-lecture-avatar[data-status="processing"]::after { background: var(--warn); }
+.sidebar-lecture-avatar[data-status="failed"]::after { background: var(--danger); }
+
+.sidebar-bottom {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sidebar-user { display: flex; align-items: center; gap: 8px; padding: 6px; }
+.app-sidebar.collapsed .sidebar-user { justify-content: center; }
+.sidebar-user-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--gradient-accent);
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sidebar-user-email {
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sidebar-signout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  background: none;
+  border: none;
+  color: var(--ink-faint);
+  font-size: 0.82rem;
+  font-family: var(--font-body);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.sidebar-signout-btn:hover { background: var(--bg); color: var(--danger); }
+
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.4);
+  z-index: 199;
+}
+.app-sidebar-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 200;
+  width: 280px;
+  box-shadow: var(--shadow-lg);
+}
+
+@media (min-width: 901px) {
+  .app-sidebar-drawer, .sidebar-backdrop, .workspace-menu-btn { display: none; }
+}
 @media (max-width: 900px) {
-  .auth-shell { grid-template-columns: 1fr; }
-  .auth-side { display: none; }
+  .app-sidebar:not(.app-sidebar-drawer) { display: none; }
+}
+
+.workspace {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.workspace-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+@media (max-width: 900px) {
+  .workspace-menu-btn { display: flex; margin: 12px 0 0 12px; }
+}
+
+.workspace-page { padding: 32px 40px 56px; overflow-y: auto; flex: 1; }
+.workspace-page-welcome { max-width: 900px; }
+.workspace-page-inline { padding: 0 40px; margin-bottom: 16px; }
+
+.workspace-recent { margin-top: 32px; }
+.workspace-recent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.recent-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--ink);
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.recent-card::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -35%;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(226, 161, 58, 0.18), transparent 70%);
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease-out);
+  pointer-events: none;
+}
+.recent-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--glow-accent);
+  transform: translateY(-2px);
+}
+.recent-card:hover::before { opacity: 1; }
+.recent-card > * { position: relative; }
+.recent-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.recent-card-title { font-weight: 600; font-size: 0.94rem; }
+
+.workspace-lecture { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.workspace-lecture-header {
+  padding: 24px 40px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.workspace-tabs {
+  padding: 16px 40px 0;
+  margin-top: 16px;
+  flex-shrink: 0;
+}
+.workspace-tab-content { flex: 1; min-height: 0; overflow-y: auto; padding: 24px 40px 40px; }
+.workspace-tab-content--chat { display: flex; flex-direction: column; padding: 12px 0 0; overflow: hidden; }
+
+/* ── Pill tabs (Chat/Transcript/Notes/Quiz) ─────────────────
+   A segmented control whose active background is a single
+   framer-motion element sharing a layoutId across tabs (see
+   WorkspaceTabs.jsx) -- it slides to the newly active tab instead of
+   just toggling classes, the same technique as a local-state segmented
+   control, wired up to real routes via NavLink. */
+.pill-tabs {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  box-shadow:
+    inset 0 -2px 4px rgba(23, 20, 31, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 4px 12px rgba(23, 20, 31, 0.04);
+}
+
+.pill-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 18px;
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  outline: none;
+}
+.pill-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.pill-tab-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #262130 0%, var(--ink) 100%);
+  box-shadow: var(--shadow-sm), 0 0 0 1px rgba(226, 161, 58, 0.18), 0 6px 16px rgba(226, 161, 58, 0.16);
+}
+
+.pill-tab-label {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+.pill-tab-label.active { color: #fff; }
+.pill-tab:hover .pill-tab-label:not(.active) { color: var(--ink); }
+
+@media (max-width: 560px) {
+  .pill-tabs { width: 100%; overflow-x: auto; }
+}
+
+@media (max-width: 640px) {
+  .workspace-lecture-header, .workspace-tabs, .workspace-tab-content, .workspace-page, .workspace-page-inline {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -801,7 +2233,9 @@ a { color: inherit; }
 .lecture-title { font-weight: 600; font-size: 0.96rem; }
 
 .badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 4px 11px;
   border-radius: 999px;
   font-size: 0.74rem;
@@ -812,6 +2246,22 @@ a { color: inherit; }
 .badge-processing { background: var(--warn-tint); color: var(--warn); }
 .badge-completed { background: var(--success-tint); color: var(--success); }
 .badge-failed { background: var(--danger-tint); color: var(--danger); }
+
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.badge-processing .badge-dot { animation: badge-pulse 1.3s ease-in-out infinite; }
+@keyframes badge-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(166, 106, 18, 0.4); }
+  50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(166, 106, 18, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .badge-processing .badge-dot { animation: none; }
+}
 
 .error-banner {
   background: var(--danger-tint);
@@ -855,6 +2305,7 @@ a { color: inherit; }
   width: 14px; height: 14px;
   border: 2px solid rgba(20,22,26,0.15);
   border-top-color: var(--ink-muted);
+  border-right-color: var(--ink-muted);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   margin-right: 6px;
@@ -864,8 +2315,74 @@ a { color: inherit; }
 .btn:not(.btn-secondary) .spinner {
   border: 2px solid rgba(255,255,255,0.35);
   border-top-color: #fff;
+  border-right-color: #fff;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Larger, higher-contrast spinner for full-section/page loading states,
+   where a 14px inline spinner reads as too subtle to notice -- two-tone
+   accent arc so the motion is unmistakable even in a quick glance. */
+.spinner-lg {
+  display: inline-block;
+  width: 34px;
+  height: 34px;
+  border: 3px solid var(--accent-tint);
+  border-top-color: var(--accent);
+  border-right-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Three-dot "still working" pulse, meant to sit right after a loading
+   label (e.g. "Thinking") so the sentence itself visibly keeps moving
+   instead of just sitting there as static text. */
+.loading-dots {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  margin-left: 2px;
+  height: 1em;
+}
+.loading-dots span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.35;
+  animation: loading-dot-bounce 1.1s ease-in-out infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay: 0.15s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes loading-dot-bounce {
+  0%, 60%, 100% { opacity: 0.35; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* Centered block for a page/section that's waiting on a request -- the
+   .spinner-lg + a label with .loading-dots gives a clear, hard-to-miss
+   "this is actively working" signal instead of a static line of text. */
+.loading-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 56px 20px;
+  color: var(--ink-muted);
+  text-align: center;
+}
+.loading-block-label {
+  display: flex;
+  align-items: baseline;
+  font-size: 0.94rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+.loading-block-hint {
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+  max-width: 40ch;
+}
 
 /* ══════════════════════════════════════════════════════════
    Lecture header + sub-nav (Transcript / Chat / Quiz pages)
@@ -973,26 +2490,27 @@ a { color: inherit; }
   .transcript-content { padding: 20px; }
 }
 
-/* ── Chat page ──────────────────────────────────────────── */
+/* ── Chat page: GPT-style full-width rows ──────────────────
+   No bubbles -- each turn is a full-width row (avatar + content),
+   with the assistant row's background lightly tinted so the eye can
+   still tell turns apart while scanning, the way ChatGPT/Claude do it
+   rather than iMessage-style bubbles. Content is centered to a
+   780px reading column via padding math (not a hard max-width on the
+   row) so the tint still spans the full pane width. */
 .chat-shell {
   display: flex;
   flex-direction: column;
-  height: min(680px, calc(100vh - 320px));
-  min-height: 420px;
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  background: transparent;
 }
 
 .chat-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 24px;
+  padding: 12px 0 20px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
 }
 
 .chat-empty {
@@ -1002,39 +2520,70 @@ a { color: inherit; }
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: 6px;
+  gap: 8px;
   color: var(--ink-muted);
   padding: 24px;
 }
-
-.chat-row { display: flex; margin: 6px 0; }
-.chat-row-user { justify-content: flex-end; }
-.chat-row-assistant { justify-content: flex-start; }
-
-.chat-bubble {
-  max-width: 78%;
-  padding: 12px 15px;
-  border-radius: var(--radius);
-  font-size: 0.93rem;
-  line-height: 1.6;
-}
-
-.chat-bubble-user {
-  background: var(--accent);
+.chat-empty-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--gradient-accent);
   color: #fff;
-  border-bottom-right-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  margin-bottom: 6px;
 }
+.chat-empty-title { font-weight: 600; color: var(--ink); font-size: 1rem; }
 
-.chat-bubble-assistant {
-  background: var(--bg-subtle);
-  border: 1px solid var(--border);
+.gpt-row {
+  display: flex;
+  gap: 14px;
+  padding: 18px max(20px, calc((100% - 780px) / 2));
+}
+.gpt-row-assistant { background: var(--bg-subtle); }
+
+.gpt-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+}
+.gpt-avatar-user { background: var(--ink); color: #fff; }
+.gpt-avatar-assistant { background: var(--gradient-accent); color: #fff; }
+
+.gpt-content {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.95rem;
+  line-height: 1.7;
   color: var(--ink);
-  border-bottom-left-radius: 4px;
+  padding-top: 3px;
 }
 
-.chat-thinking { color: var(--ink-muted); display: flex; align-items: center; }
+.chat-thinking { color: var(--ink-muted); display: flex; align-items: center; gap: 2px; }
 
-.chat-answer-text { white-space: pre-wrap; }
+.chat-answer-text { }
+
+.typing-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: currentColor;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+  animation: caret-blink 0.9s step-end infinite;
+}
+@keyframes caret-blink { 50% { opacity: 0; } }
 
 .chat-sources-toggle {
   display: inline-flex;
@@ -1056,35 +2605,40 @@ a { color: inherit; }
 .chat-composer {
   display: flex;
   align-items: flex-end;
-  gap: 10px;
-  padding: 14px 16px;
-  border-top: 1px solid var(--border);
+  gap: 8px;
+  max-width: 780px;
+  width: calc(100% - 40px);
+  margin: 4px auto 18px;
+  padding: 9px 9px 9px 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: 22px;
   background: #fff;
+  box-shadow: var(--shadow);
+  flex-shrink: 0;
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
 }
+.chat-composer:focus-within { border-color: var(--accent); box-shadow: var(--shadow), var(--glow-accent); }
 .chat-composer textarea {
   flex: 1;
   resize: none;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  padding: 11px 14px;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 8px 0;
   font-family: var(--font-body);
   font-size: 0.93rem;
-  max-height: 140px;
+  max-height: 160px;
   line-height: 1.5;
-}
-.chat-composer textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-tint);
+  color: var(--ink);
 }
 
 .chat-send-btn {
   flex-shrink: 0;
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-ink);
   border: none;
   display: flex;
   align-items: center;
@@ -1094,6 +2648,33 @@ a { color: inherit; }
 }
 .chat-send-btn:hover:not(:disabled) { background: var(--accent-hover); }
 .chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Minimal markdown rendering (chat answers) ─────────────── */
+.md-content { display: flex; flex-direction: column; gap: 12px; }
+.md-paragraph { margin: 0; }
+.md-heading { margin: 4px 0 0; }
+.md-list { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 4px; }
+.md-inline-code {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+.gpt-row-assistant .md-inline-code { background: #fff; }
+.md-code-block {
+  background: var(--page-ink);
+  color: #f4f4f5;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  line-height: 1.55;
+  margin: 0;
+}
+.md-code-block code { background: none; border: none; padding: 0; color: inherit; }
 
 /* ── Quiz page ──────────────────────────────────────────── */
 .quiz-toolbar {
@@ -1207,9 +2788,9 @@ a { color: inherit; }
   font-family: var(--font-body);
   color: var(--ink);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
 }
-.mcq-choice:hover:not(:disabled) { border-color: var(--ink); background: var(--bg-subtle); }
+.mcq-choice:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-tint); transform: translateX(2px); }
 .mcq-choice:disabled { cursor: default; }
 .mcq-choice.correct { border-color: var(--success); background: var(--success-tint); color: var(--success); font-weight: 600; }
 .mcq-choice.incorrect { border-color: var(--danger); background: var(--danger-tint); color: var(--danger); }
@@ -1253,7 +2834,7 @@ a { color: inherit; }
 
 .notes-summary-card {
   background: var(--accent-tint);
-  border: 1px solid rgba(11, 110, 79, 0.18);
+  border: 1px solid rgba(226, 161, 58, 0.22);
 }
 .notes-summary-card .section-eyebrow { color: var(--accent); }
 .notes-summary-card p { color: var(--ink); font-size: 0.96rem; line-height: 1.65; }
@@ -1299,7 +2880,9 @@ a { color: inherit; }
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 14px 16px;
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
 }
+.notes-term-card:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
 .notes-term-name {
   font-family: var(--font-mono);
   font-size: 0.85rem;

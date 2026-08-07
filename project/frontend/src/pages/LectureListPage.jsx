@@ -1,41 +1,55 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { api, ApiError } from "../api";
+import { useLectures } from "../context/LecturesContext.jsx";
 import StatusBadge from "../components/StatusBadge";
 import ErrorBanner from "../components/ErrorBanner";
 
+/* Same easing/duration scale as the rest of the app's Framer Motion
+   (FloatingNav, ChatPage) -- entrance is a quiet fade+rise, not a
+   flashy reveal, and the recent-lecture grid staggers in the way the
+   landing's feature grid does. */
+const fadeUp = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } },
+};
+const staggerGrid = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.05 } },
+};
+
 const OUTPUT_LANGUAGES = ["mixed", "urdu", "english", "arabic"];
 
+const EMPTY_FORM = {
+  title: "",
+  course: "",
+  instructor: "",
+  semester: "",
+  lecture_date: "",
+  output_language: "mixed",
+  language_code_hint: "",
+  file: null,
+};
+
+/* This is the /app index route -- shown when no specific lecture is
+   selected. The full lecture list now lives in the sidebar nav, so this
+   pane is a "start something" screen: the upload form, plus a quick
+   grid back into a few recent lectures. Sidebar's "New lecture" button
+   routes here with `state: { openUpload: true }` so it opens the form
+   immediately from anywhere in the workspace. */
 export default function LectureListPage() {
-  const [lectures, setLectures] = useState(null);
-  const [listError, setListError] = useState("");
-  const [showForm, setShowForm] = useState(false);
+  const location = useLocation();
+  const { lectures, error: listError, refresh } = useLectures();
+  const [showForm, setShowForm] = useState(Boolean(location.state?.openUpload));
 
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
-  const [form, setForm] = useState({
-    title: "",
-    course: "",
-    instructor: "",
-    semester: "",
-    lecture_date: "",
-    output_language: "mixed",
-    language_code_hint: "",
-    file: null,
-  });
-
-  const loadLectures = async () => {
-    try {
-      setLectures(await api.listLectures());
-      setListError("");
-    } catch (err) {
-      setListError(err instanceof ApiError ? err.message : "Could not load lectures.");
-    }
-  };
+  const [form, setForm] = useState(EMPTY_FORM);
 
   useEffect(() => {
-    loadLectures();
-  }, []);
+    if (location.state?.openUpload) setShowForm(true);
+  }, [location.state]);
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -58,18 +72,9 @@ export default function LectureListPage() {
 
     try {
       await api.uploadLecture(fd);
-      setForm({
-        title: "",
-        course: "",
-        instructor: "",
-        semester: "",
-        lecture_date: "",
-        output_language: "mixed",
-        language_code_hint: "",
-        file: null,
-      });
+      setForm(EMPTY_FORM);
       setShowForm(false);
-      await loadLectures();
+      await refresh();
     } catch (err) {
       setUploadError(err instanceof ApiError ? err.message : "Upload failed.");
     } finally {
@@ -77,20 +82,38 @@ export default function LectureListPage() {
     }
   };
 
+  const recent = lectures ? lectures.slice(0, 6) : [];
+
   return (
-    <div className="container app-page">
+    <motion.div
+      className="workspace-page workspace-page-welcome"
+      initial="hidden"
+      animate="show"
+      variants={fadeUp}
+    >
       <div className="page-head">
         <div>
           <h1 className="page-title">Your lectures</h1>
-          <p className="page-subtitle">Upload a recording, then chat with it or generate a quiz once it's processed.</p>
+          <p className="page-subtitle">
+            Pick a lecture from the sidebar to chat, review notes, or take a quiz -- or upload a new one below.
+          </p>
         </div>
         <button className="btn" onClick={() => setShowForm((v) => !v)}>
           {showForm ? "Cancel" : "+ Upload lecture"}
         </button>
       </div>
 
-      {showForm && (
-        <form className="card" onSubmit={handleUpload}>
+      <AnimatePresence initial={false}>
+        {showForm && (
+          <motion.form
+            className="card"
+            onSubmit={handleUpload}
+            initial={{ opacity: 0, y: -8, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: "auto" }}
+            exit={{ opacity: 0, y: -8, height: 0 }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+            style={{ overflow: "hidden" }}
+          >
           <ErrorBanner message={uploadError} />
           <div className="field">
             <label>Lecture file (audio or video)</label>
@@ -166,29 +189,38 @@ export default function LectureListPage() {
             {uploading && <span className="spinner" />}
             {uploading ? "Processing lecture..." : "Upload & process"}
           </button>
-        </form>
-      )}
+          </motion.form>
+        )}
+      </AnimatePresence>
 
       <ErrorBanner message={listError} />
 
       {lectures === null && !listError && <p className="muted">Loading...</p>}
 
-      {lectures && lectures.length === 0 && (
+      {lectures && lectures.length === 0 && !showForm && (
         <div className="empty-state">No lectures yet -- upload your first one to get started.</div>
       )}
 
-      {lectures &&
-        lectures.map((l) => (
-          <Link key={l.lecture_id} to={`/app/lectures/${l.lecture_id}`} className="lecture-list-item">
-            <div>
-              <div className="lecture-title">{l.title}</div>
-              <div className="muted">
-                {[l.course, l.instructor].filter(Boolean).join(" · ") || l.original_filename}
-              </div>
-            </div>
-            <StatusBadge status={l.status} />
-          </Link>
-        ))}
-    </div>
+      {recent.length > 0 && (
+        <div className="workspace-recent">
+          <div className="section-eyebrow">Recent</div>
+          <motion.div className="workspace-recent-grid" initial="hidden" animate="show" variants={staggerGrid}>
+            {recent.map((l) => (
+              <motion.div key={l.lecture_id} variants={fadeUp}>
+                <Link to={`/app/lectures/${l.lecture_id}`} className="recent-card">
+                  <div className="recent-card-head">
+                    <span className="recent-card-title">{l.title}</span>
+                    <StatusBadge status={l.status} />
+                  </div>
+                  <div className="muted">
+                    {[l.course, l.instructor].filter(Boolean).join(" · ") || l.original_filename}
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      )}
+    </motion.div>
   );
 }

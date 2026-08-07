@@ -1,20 +1,29 @@
 import { useEffect, useRef, useState } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import { api, ApiError } from "../api";
+import { useAuth } from "../context/AuthContext.jsx";
 import ErrorBanner from "../components/ErrorBanner";
+import Markdown from "../components/Markdown.jsx";
 
 export default function ChatPage() {
   useOutletContext(); // lecture available if needed later
   const { lectureId } = useParams();
+  const { user } = useAuth();
   const [messages, setMessages] = useState(null);
   const [question, setQuestion] = useState("");
   const [asking, setAsking] = useState(false);
   const [error, setError] = useState("");
+  // Id of the message currently doing its word-reveal animation -- only
+  // set right after a fresh answer comes back, never for history loaded
+  // from the API, so re-opening a chat doesn't replay every answer.
+  const [streamingId, setStreamingId] = useState(null);
   const logEndRef = useRef(null);
   const textareaRef = useRef(null);
 
   useEffect(() => {
     setMessages(null);
+    setStreamingId(null);
     api
       .getChatHistory(lectureId)
       .then(setMessages)
@@ -24,6 +33,14 @@ export default function ChatPage() {
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, asking]);
+
+  // Auto-grow the composer with content instead of a fixed-height box.
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+  }, [question]);
 
   const handleAsk = async (e) => {
     e.preventDefault();
@@ -36,6 +53,7 @@ export default function ChatPage() {
     try {
       const msg = await api.askQuestion(lectureId, q);
       setMessages((prev) => [...(prev || []), msg]);
+      setStreamingId(msg.id);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not get an answer.");
       setQuestion(q); // give the question back so it isn't lost
@@ -44,6 +62,8 @@ export default function ChatPage() {
       textareaRef.current?.focus();
     }
   };
+
+  const userInitial = (user?.email || "?")[0].toUpperCase();
 
   return (
     <div className="chat-shell">
@@ -56,8 +76,8 @@ export default function ChatPage() {
 
         {messages?.length === 0 && (
           <div className="chat-empty">
-            <ChatEmptyIcon />
-            <p>Ask anything about this lecture.</p>
+            <span className="chat-empty-mark">اع</span>
+            <p className="chat-empty-title">Ask anything about this lecture.</p>
             <p className="muted" style={{ maxWidth: "40ch" }}>
               Answers are grounded strictly in what this lecture actually covers -- if it doesn't
               cover something, you'll be told that directly instead of getting a guess.
@@ -65,12 +85,26 @@ export default function ChatPage() {
           </div>
         )}
 
-        {messages?.map((m) => <ChatExchange key={m.id} message={m} />)}
+        {messages?.map((m) => (
+          <ChatExchange
+            key={m.id}
+            message={m}
+            userInitial={userInitial}
+            streaming={m.id === streamingId}
+            onStreamDone={() => setStreamingId(null)}
+          />
+        ))}
 
         {asking && (
-          <div className="chat-row chat-row-assistant">
-            <div className="chat-bubble chat-bubble-assistant chat-thinking">
-              <span className="spinner" /> Thinking...
+          <div className="gpt-row gpt-row-assistant">
+            <span className="gpt-avatar gpt-avatar-assistant">اع</span>
+            <div className="gpt-content chat-thinking">
+              Thinking
+              <span className="loading-dots">
+                <span />
+                <span />
+                <span />
+              </span>
             </div>
           </div>
         )}
@@ -79,7 +113,7 @@ export default function ChatPage() {
       </div>
 
       {error && (
-        <div style={{ padding: "0 2px" }}>
+        <div style={{ maxWidth: 780, width: "100%", margin: "0 auto", padding: "0 24px" }}>
           <ErrorBanner message={error} />
         </div>
       )}
@@ -106,20 +140,57 @@ export default function ChatPage() {
   );
 }
 
-function ChatExchange({ message }) {
+function ChatExchange({ message, userInitial, streaming, onStreamDone }) {
   const [showSources, setShowSources] = useState(false);
+  const [revealCount, setRevealCount] = useState(streaming ? 0 : null);
   const hasSources = message.sources?.length > 0;
+
+  // Word-by-word reveal to simulate streaming, since the API returns the
+  // full answer in one response rather than tokens over time.
+  const tokens = message.answer.split(/(\s+)/);
+  useEffect(() => {
+    if (!streaming) return;
+    let i = 0;
+    const id = setInterval(() => {
+      i += 1;
+      setRevealCount(i);
+      if (i >= tokens.length) {
+        clearInterval(id);
+        onStreamDone?.();
+      }
+    }, 16);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [streaming, message.id]);
+
+  const displayedAnswer = streaming && revealCount !== null ? tokens.slice(0, revealCount).join("") : message.answer;
+  const stillRevealing = streaming && revealCount !== null && revealCount < tokens.length;
 
   return (
     <>
-      <div className="chat-row chat-row-user">
-        <div className="chat-bubble chat-bubble-user">{message.question}</div>
-      </div>
-      <div className="chat-row chat-row-assistant">
-        <div className="chat-bubble chat-bubble-assistant">
-          <div className="chat-answer-text">{message.answer}</div>
+      <motion.div
+        className="gpt-row gpt-row-user"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+      >
+        <span className="gpt-avatar gpt-avatar-user">{userInitial}</span>
+        <div className="gpt-content">{message.question}</div>
+      </motion.div>
+      <motion.div
+        className="gpt-row gpt-row-assistant"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, delay: 0.05 }}
+      >
+        <span className="gpt-avatar gpt-avatar-assistant">اع</span>
+        <div className="gpt-content">
+          <div className="chat-answer-text">
+            <Markdown text={displayedAnswer} />
+            {stillRevealing && <span className="typing-caret" />}
+          </div>
 
-          {hasSources && (
+          {hasSources && !stillRevealing && (
             <>
               <button className="chat-sources-toggle" onClick={() => setShowSources((v) => !v)}>
                 {showSources ? "Hide" : "Show"} {message.sources.length} source
@@ -141,7 +212,7 @@ function ChatExchange({ message }) {
             </>
           )}
         </div>
-      </div>
+      </motion.div>
     </>
   );
 }
@@ -164,19 +235,6 @@ function ChevronIcon({ open }) {
       style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}
     >
       <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function ChatEmptyIcon() {
-  return (
-    <svg width="36" height="36" viewBox="0 0 18 18" fill="none" style={{ marginBottom: 4 }}>
-      <path
-        d="M3 4.5h12a1 1 0 011 1V12a1 1 0 01-1 1H8l-3.5 3V13H3a1 1 0 01-1-1V5.5a1 1 0 011-1z"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinejoin="round"
-      />
     </svg>
   );
 }

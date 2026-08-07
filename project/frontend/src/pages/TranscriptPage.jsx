@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import { api, ApiError } from "../api";
 import ErrorBanner from "../components/ErrorBanner";
 
@@ -63,13 +64,18 @@ export default function TranscriptPage() {
         </div>
       </div>
 
-      <div className="transcript-content card">
+      <motion.div
+        className="transcript-content card"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      >
         {paragraphs.map((p, i) => (
           <p key={i} dir="auto" className="transcript-paragraph">
             {p.trim()}
           </p>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }
