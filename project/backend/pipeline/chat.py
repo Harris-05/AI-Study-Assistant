@@ -133,7 +133,7 @@ class ChatState(TypedDict):
     sources: list[dict]
 
 
-def _get_llm():
+def _get_llm(temperature:float=0.0):
     if config.LLM_PROVIDER != "openai":
         raise NotImplementedError(
             f"LLM_PROVIDER='{config.LLM_PROVIDER}' not wired yet in cleaner.py. "
@@ -146,7 +146,7 @@ def _get_llm():
     return ChatOpenAI(
         model=config.LLM_MODEL,
         api_key=config.OPENAI_API_KEY,
-        temperature=0.0,  # low temperature: this is correction, not creative writing
+        temperature=temperature
     )
 
     if not config.GOOGLE_API_KEY:
@@ -211,7 +211,7 @@ def _plan(state: ChatState) -> dict:
     """Decide narrow vs. broad, and produce the initial search queries.
     Conversation history (if any) is included so follow-up questions that
     reference earlier context get resolved into self-contained queries."""
-    llm = _get_llm(temperature=0.0)
+    llm = _get_llm()
     prompt = ChatPromptTemplate.from_messages([
         ("system", PLAN_SYSTEM_PROMPT),
         ("human", "{history_block}Question: {question}"),
