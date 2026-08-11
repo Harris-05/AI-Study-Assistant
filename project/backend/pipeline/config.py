@@ -15,8 +15,8 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "whisper-large-v3-turbo") 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 # ── LLM Settings ─────────────────────────────────────────
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini")  # gemini | openai | anthropic
-LLM_MODEL = os.getenv("LLM_MODEL", "gemini-3.5-flash-lite")
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai")  # gemini | openai | anthropic
+LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")  # Gemini: gpt-4o-mini | gpt-4o | gpt-4o-large
 
 # ── Output Language ──────────────────────────────────────
 # The language the FINAL cleaned transcript should be written in.
