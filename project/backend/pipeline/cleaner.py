@@ -181,7 +181,7 @@ def _get_llm():
     if config.LLM_PROVIDER != "openai":
         raise NotImplementedError(
             f"LLM_PROVIDER='{config.LLM_PROVIDER}' not wired yet in cleaner.py. "
-            "Add a specfically branch here (e.g. ChatGoogleGenerativeAI, ChatAnthropic) -- LangChain "
+            "Add a specfically cleaner branch here (e.g. ChatGoogleGenerativeAI, ChatAnthropic) -- LangChain "
             "makes this a drop-in swap since they all implement the same Runnable interface."
         )
     if not config.OPENAI_API_KEY:
