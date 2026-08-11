@@ -21,6 +21,14 @@
 
 services:
   backend:
+    # Published by CI (.github/workflows/ci.yml) on every push to main.
+    # The server pulls this finished image instead of building it -- see
+    # the comment in that workflow for why building on the instance took
+    # production down. IMAGE_TAG lets a deploy pin an older build for
+    # rollback: IMAGE_TAG=<commit-sha> docker compose up -d
+    image: ghcr.io/harris-05/ai-study-assistant-backend:${IMAGE_TAG:-latest}
+    # Kept so local development still works with `docker compose build`
+    # or `docker compose up --build`. The server never uses it.
     build: ./backend
     restart: unless-stopped
     env_file:
