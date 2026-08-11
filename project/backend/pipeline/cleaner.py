@@ -20,12 +20,19 @@ Built with LangChain (LCEL) so the underlying LLM provider is swappable --
 currently wired to Gemini, but langchain-openai / langchain-anthropic drop
 in with the same interface.
 """
+import re
+
+from langdetect import detect, DetectorFactory, LangDetectException
 from loguru import logger
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 import config
+
+# langdetect's detect() samples internally and is non-deterministic run-to-run
+# unless seeded -- pin it so the same input always gets the same verdict.
+DetectorFactory.seed = 0
 
 SYSTEM_PROMPT = """You are an expert transcript editor for university lecture recordings. \
 The lectures are commonly a mix of Urdu, English, and Arabic (code-switching), and were \
@@ -93,11 +100,8 @@ Clean this transcript chunk:
 
 ENFORCE_SYSTEM_PROMPT = """You are proofreading an already-cleaned lecture transcript that \
 was supposed to be fully rewritten in {output_language}, but may still contain leftover \
-Urdu sentences or phrases that the previous cleaning pass missed -- this can happen because \
-Urdu and Arabic share the same script, so Urdu speech sometimes gets mistaken for protected \
-Arabic religious content and left untranslated.
-
-Your ONLY job: find any remaining Urdu-language text that is NOT one of the two protected \
+Hindi sentences or phrases that the previous cleaning pass missed.
+Your ONLY job: find any remaining Hindi-language text that is NOT one of the two protected \
 categories below, and translate it into {output_language}. Leave everything else EXACTLY as \
 given -- do not rephrase, reformat, or "improve" sentences that are already correctly in \
 {output_language}.
@@ -107,11 +111,92 @@ PROTECTED (do NOT translate, leave exactly as-is):
 2. Actual Quranic verses, Hadith, or short Arabic religious expressions (Bismillah, \
 InshaAllah, MashaAllah, SubhanAllah, Alhamdulillah, etc).
 
-Everything else that is still in Urdu must be translated into {output_language}.
+Everything else that is still in Hindi must be translated into {output_language}.
 
 Return ONLY the corrected full text, same paragraph structure as given, no commentary, no \
 markdown, no preamble.
 """
+
+# Narrow follow-up prompt. Unlike ENFORCE_SYSTEM_PROMPT above (which asks the model
+# to *judge* whether something "is Hindi"), this prompt is only ever invoked on
+# paragraphs where langdetect has already told us the dominant language doesn't
+# match the requested output_language -- so the model's job here is just "convert
+# whatever language/script this currently is into {output_language}", not "go
+# hunting for leftover Hindi" specifically. This makes it work for ANY mismatch
+# (Hindi, stray English, misplaced Arabic, etc), not just Devanagari script.
+LANGUAGE_FIX_SYSTEM_PROMPT = """You are fixing one specific, narrow issue in an \
+already-cleaned lecture transcript paragraph: part or all of it is not actually \
+written in the required output language.
+
+Required output language: {output_language}.
+Detected language of this paragraph: {detected_language}.
+
+Convert/translate every part of this paragraph that is NOT in {output_language} into \
+{output_language}, regardless of what language or script it is currently in (Hindi/\
+Devanagari, English, Arabic, or anything else). If the mismatched text is Urdu written \
+in a different script, or vice versa, treat it as a SCRIPT conversion (same words, same \
+meaning) rather than a translation. Otherwise, translate for meaning.
+
+PROTECTED -- do NOT alter these, even if they sit inside mismatched-language text:
+1. Technical/academic/CS/engineering terms in Latin script (Inheritance, Class, API, \
+Docker, etc) -- keep exactly as given, do not translate or transliterate them.
+2. Actual Quranic verses, Hadith, or short Arabic religious expressions (Bismillah, \
+InshaAllah, MashaAllah, SubhanAllah, Alhamdulillah, etc) -- keep exactly as given.
+3. Any part of the paragraph that is already correctly in {output_language} -- leave \
+it completely untouched, character for character. Do not rephrase or "improve" it.
+
+Return ONLY the corrected paragraph, no commentary, no markdown, no preamble.
+"""
+
+# Map our config-level language names to the ISO 639-1 codes langdetect returns.
+# Hindi ("hi") deliberately has no entry here -- it should never be a valid target,
+# it only ever shows up as something to be *caught* by the mismatch check below.
+LANGDETECT_CODE_MAP = {
+    "urdu": "ur",
+    "english": "en",
+    "arabic": "ar",
+}
+
+# langdetect is unreliable on very short strings (single words, numbers, a lone
+# technical term) -- below this word count we skip detection on that unit rather
+# than risk a false-positive flag.
+MIN_WORDS_FOR_DETECTION = 4
+
+# Sentence-ending punctuation across Urdu/Arabic/English, used to split a paragraph
+# into detectable units without pulling in a full NLP sentence tokenizer.
+_SENTENCE_SPLIT_RE = re.compile(r"(?<=[.۔؟!])\s+")
+
+
+def _detect_language(text: str) -> str | None:
+    """Best-effort language detection. Returns an ISO 639-1 code, or None if
+    the text is too short/ambiguous to trust a verdict on."""
+    if len(text.split()) < MIN_WORDS_FOR_DETECTION:
+        return None
+    try:
+        return detect(text)
+    except LangDetectException:
+        return None
+
+
+def _paragraph_matches_language(paragraph: str, target_code: str) -> bool:
+    """True if the paragraph looks like it's already in the target language.
+    Checked at both paragraph level (cheap, catches the common case) and
+    sentence level (catches a mismatched sentence or two buried inside an
+    otherwise-correct paragraph, which whole-paragraph detection can miss
+    since langdetect just returns its single best overall guess)."""
+    whole = _detect_language(paragraph)
+    if whole is not None and whole != target_code:
+        return False
+
+    for sentence in _SENTENCE_SPLIT_RE.split(paragraph):
+        sentence = sentence.strip()
+        if not sentence:
+            continue
+        lang = _detect_language(sentence)
+        if lang is not None and lang != target_code:
+            return False
+
+    return True
 
 
 def _get_llm():
@@ -144,6 +229,15 @@ def _build_enforce_chain():
     prompt = ChatPromptTemplate.from_messages([
         ("system", ENFORCE_SYSTEM_PROMPT),
         ("human", "Text to proofread:\n---\n{chunk}\n---"),
+    ])
+    llm = _get_llm()
+    return prompt | llm | StrOutputParser()
+
+
+def _build_language_fix_chain():
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", LANGUAGE_FIX_SYSTEM_PROMPT),
+        ("human", "Paragraph to fix:\n---\n{chunk}\n---"),
     ])
     llm = _get_llm()
     return prompt | llm | StrOutputParser()
@@ -221,6 +315,18 @@ def clean_transcript(raw_text: str, output_language: str | None = None) -> str:
     if output_language != "mixed" and config.ENFORCE_OUTPUT_LANGUAGE:
         stitched = _enforce_output_language(stitched, output_language)
 
+    # THIRD PASS: language-detection safety net, general to ANY leftover
+    # language/script -- not just Hindi. Passes 1 and 2 both rely on the LLM
+    # *judging* what counts as "still Hindi" or "still not output_language",
+    # which is inconsistent. This pass instead runs each paragraph (and its
+    # sentences) through real language detection and only re-sends the ones
+    # that don't match the requested output_language -- cheap in the common
+    # case where nothing slipped through. Skipped for "mixed" since
+    # code-switching is intentional there and there's no single target
+    # language to check against.
+    if output_language != "mixed":
+        stitched = _fix_language_mismatches(stitched, output_language)
+
     return stitched
 
 
@@ -243,6 +349,61 @@ def _enforce_output_language(cleaned_text: str, output_language: str) -> str:
         fixed_parts.append(fixed.strip())
 
     return "\n\n".join(fixed_parts)
+
+
+def _fix_language_mismatches(cleaned_text: str, output_language: str) -> str:
+    """Final safety net: scan paragraph-by-paragraph (and sentence-by-sentence
+    within each) using real language detection, and only send paragraphs that
+    don't match output_language through a dedicated fix prompt. Everything
+    else is left untouched and never re-sent to the model, which keeps this
+    pass cheap in the common case where the first two passes already did
+    their job.
+
+    Works for any mismatch -- leftover Hindi, stray English in an Urdu
+    lecture, misplaced Arabic, etc -- not just one hardcoded script."""
+    target_code = LANGDETECT_CODE_MAP.get(output_language)
+    if target_code is None:
+        logger.warning(
+            f"No langdetect code mapped for output_language='{output_language}' -- "
+            "skipping language-mismatch fix pass"
+        )
+        return cleaned_text
+
+    paragraphs = cleaned_text.split("\n\n")
+    flagged = [
+        (i, _detect_language(p) or "unknown")
+        for i, p in enumerate(paragraphs)
+        if not _paragraph_matches_language(p, target_code)
+    ]
+
+    if not flagged:
+        logger.info(f"No language mismatches detected against target='{output_language}'")
+        return cleaned_text
+
+    logger.info(
+        f"Language mismatch detected in {len(flagged)}/{len(paragraphs)} "
+        f"paragraph(s) against target='{output_language}' -- running targeted fix pass"
+    )
+    fix_chain = _build_language_fix_chain()
+
+    for i, detected_language in flagged:
+        fixed = fix_chain.invoke({
+            "output_language": output_language,
+            "detected_language": detected_language,
+            "chunk": paragraphs[i],
+        }).strip()
+
+        if not _paragraph_matches_language(fixed, target_code):
+            # Don't loop retrying indefinitely -- flag it clearly so a human
+            # can check this paragraph, but don't drop or mangle the content.
+            logger.warning(
+                f"Paragraph {i} still doesn't match target='{output_language}' "
+                "after fix pass -- leaving as returned for manual review"
+            )
+
+        paragraphs[i] = fixed
+
+    return "\n\n".join(paragraphs)
 
 
 def save_clean_transcript(cleaned_text: str, lecture_id: str) -> "Path":
