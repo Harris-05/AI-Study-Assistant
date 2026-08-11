@@ -48,8 +48,10 @@ jobs:
           # regardless of what is requested.
           script: bash ~/deploy.sh
           script_stop: true
-          # Building the image can take a few minutes on a t3.micro.
-          command_timeout: 20m
+          # The instance no longer builds anything -- it pulls a finished
+          # image from the registry -- so this only needs to cover the
+          # download, container restart and health check.
+          command_timeout: 10m
 
       - name: Verify the public endpoint
         # The script already checks health from inside the server. This

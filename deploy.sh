@@ -5,8 +5,10 @@
 #   - automatically by .github/workflows/cd.yml after CI passes on main
 #   - manually:  bash ~/deploy.sh
 #
-# Safe to run repeatedly: it makes the server match origin/main exactly,
-# rebuilds, and refuses to report success unless the app answers afterwards.
+# This script does NOT build anything. CI builds the image on GitHub's
+# runners and publishes it to the container registry; the instance only
+# downloads the finished result. Building here previously exhausted the
+# t3.micro's CPU credits and took the live site offline mid-deploy.
 set -euo pipefail
 
 REPO_DIR="$HOME/AI-Study-Assistant"
@@ -23,9 +25,12 @@ git fetch --all --prune
 # are NOT touched, so backend/.env survives.
 git reset --hard origin/main
 
-echo "==> Rebuilding and restarting containers"
+echo "==> Pulling the image built by CI"
 cd "$COMPOSE_DIR"
-docker compose up -d --build
+docker compose pull
+
+echo "==> Restarting containers"
+docker compose up -d
 
 echo "==> Removing unused images"
 # Old image layers accumulate on every deploy; the disk is only 30 GB.
