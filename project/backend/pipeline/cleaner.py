@@ -1,32 +1,10 @@
-"""
-Stage 3: Raw Transcript -> Clean Transcript (grammar, script, language fixes).
-
-This is the core "intelligence" stage described in the spec:
-  - detect language per sentence (Urdu/English/Arabic/Mixed)
-  - convert any Hindi-script output to Urdu script (same meaning)
-  - preserve technical terms in Latin script (don't translate "Inheritance" -> "وراثت")
-  - preserve Arabic religious/quoted phrases verbatim, only fixing ASR typos
-  - fix ASR errors: punctuation, grammar, broken sentences -- WITHOUT inventing content
-  - group sentences into logical paragraphs
-  - rewrite in the user's chosen OUTPUT_LANGUAGE, or keep the natural code-mixed
-    style if OUTPUT_LANGUAGE = "mixed"
-
-Long lectures are cleaned in overlapping chunks (see config.CLEAN_CHUNK_*)
-because a 1-3hr lecture transcript won't fit in a single LLM call. Overlap
-gives the model context from the previous chunk so it doesn't cut sentences
-awkwardly at chunk boundaries.
-
-Built with LangChain (LCEL) so the underlying LLM provider is swappable --
-currently wired to Gemini, but langchain-openai / langchain-anthropic drop
-in with the same interface.
-"""
 import re
 
 from langdetect import detect, DetectorFactory, LangDetectException
 from loguru import logger
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 
 import config
 
@@ -200,19 +178,19 @@ def _paragraph_matches_language(paragraph: str, target_code: str) -> bool:
 
 
 def _get_llm():
-    if config.LLM_PROVIDER != "gemini":
+    if config.LLM_PROVIDER != "openai":
         raise NotImplementedError(
             f"LLM_PROVIDER='{config.LLM_PROVIDER}' not wired yet in cleaner.py. "
-            "Add a branch here (e.g. ChatOpenAI, ChatAnthropic) -- LangChain makes "
-            "this a drop-in swap since they all implement the same Runnable interface."
+            "Add a branch here (e.g. ChatGoogleGenerativeAI, ChatAnthropic) -- LangChain "
+            "makes this a drop-in swap since they all implement the same Runnable interface."
         )
-    if not config.GOOGLE_API_KEY:
-        raise ValueError("GOOGLE_API_KEY is not set in your environment/.env")
+    if not config.OPENAI_API_KEY:
+        raise ValueError("OPENAI_API_KEY is not set in your environment/.env")
 
-    return ChatGoogleGenerativeAI(
+    return ChatOpenAI(
         model=config.LLM_MODEL,
-        google_api_key=config.GOOGLE_API_KEY,
-        temperature=0.1,  # low temperature: this is correction, not creative writing
+        api_key=config.OPENAI_API_KEY,
+        temperature=0.0,  # low temperature: this is correction, not creative writing
     )
 
 
@@ -304,26 +282,10 @@ def clean_transcript(raw_text: str, output_language: str | None = None) -> str:
         previous_context = cleaned
 
     stitched = "\n\n".join(cleaned_parts)
-
-    # SECOND PASS: catch residual code-switched Urdu the first pass missed.
-    # Urdu and Arabic share the same script, so the model sometimes
-    # mistakes ordinary Urdu speech for "protected Arabic religious
-    # content" and leaves it untranslated -- this pass specifically hunts
-    # for and fixes that, without touching anything already correct. Only
-    # runs when a single target language was requested; skipped for
-    # "mixed" since code-switching is intentional there.
+    #Second Pass: Enforce output language if requested, and fix any remaining mismatches
     if output_language != "mixed" and config.ENFORCE_OUTPUT_LANGUAGE:
         stitched = _enforce_output_language(stitched, output_language)
-
-    # THIRD PASS: language-detection safety net, general to ANY leftover
-    # language/script -- not just Hindi. Passes 1 and 2 both rely on the LLM
-    # *judging* what counts as "still Hindi" or "still not output_language",
-    # which is inconsistent. This pass instead runs each paragraph (and its
-    # sentences) through real language detection and only re-sends the ones
-    # that don't match the requested output_language -- cheap in the common
-    # case where nothing slipped through. Skipped for "mixed" since
-    # code-switching is intentional there and there's no single target
-    # language to check against.
+    #Third Pass: Final safety net to fix any remaining language mismatches
     if output_language != "mixed":
         stitched = _fix_language_mismatches(stitched, output_language)
 

@@ -180,7 +180,7 @@ ALLOWED_UPLOAD_EXTENSIONS = {".mp3", ".wav", ".m4a", ".aac", ".flac", ".ogg", ".
                               ".mp4", ".mov", ".mkv", ".webm"}
 
 # ── CORS ──────────────────────────────────────────────────
-CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", "http://localhost:5173")
+CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", "http://localhost:5174")
 CORS_ALLOW_CREDENTIALS = False  # auth is a Bearer token header, not a cookie -- no credentials needed
 
 # ── Supabase Auth ─────────────────────────────────────────

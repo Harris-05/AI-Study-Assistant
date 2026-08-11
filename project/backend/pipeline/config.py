@@ -13,6 +13,7 @@ ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")  # for Gemini
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "whisper-large-v3-turbo") 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 # ── LLM Settings ─────────────────────────────────────────
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini")  # gemini | openai | anthropic
 LLM_MODEL = os.getenv("LLM_MODEL", "gemini-3.5-flash-lite")

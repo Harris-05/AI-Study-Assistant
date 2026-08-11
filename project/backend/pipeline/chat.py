@@ -43,7 +43,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import StateGraph, END
 from loguru import logger
-
+from langchain_openai import ChatOpenAI
 import config
 import vectorstore
 
@@ -133,7 +133,22 @@ class ChatState(TypedDict):
     sources: list[dict]
 
 
-def _get_llm(temperature: float) -> ChatGoogleGenerativeAI:
+def _get_llm():
+    if config.LLM_PROVIDER != "openai":
+        raise NotImplementedError(
+            f"LLM_PROVIDER='{config.LLM_PROVIDER}' not wired yet in cleaner.py. "
+            "Add a branch here (e.g. ChatGoogleGenerativeAI, ChatAnthropic) -- LangChain "
+            "makes this a drop-in swap since they all implement the same Runnable interface."
+        )
+    if not config.OPENAI_API_KEY:
+        raise ValueError("OPENAI_API_KEY is not set in your environment/.env")
+
+    return ChatOpenAI(
+        model=config.LLM_MODEL,
+        api_key=config.OPENAI_API_KEY,
+        temperature=0.0,  # low temperature: this is correction, not creative writing
+    )
+
     if not config.GOOGLE_API_KEY:
         raise ValueError("GOOGLE_API_KEY is not set. Add it to your .env file.")
     return ChatGoogleGenerativeAI(
