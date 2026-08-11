@@ -56,16 +56,48 @@ jobs:
         run: python manage.py test --verbosity 2
 
   docker:
-    name: Backend - Docker image builds
+    name: Backend - Docker image
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/harris-05/ai-study-assistant-backend
     steps:
       - uses: actions/checkout@v4
 
-      # The server deploys by building this exact Dockerfile. Building it
-      # here means a broken Dockerfile is caught in CI rather than halfway
-      # through a deployment.
-      - name: Build backend image
-        run: docker build -t ai-study-backend:ci project/backend
+      - uses: docker/setup-buildx-action@v3
+
+      # Only authenticate when we intend to publish. Pull requests build
+      # the image to prove it still compiles, but must never push -- a PR
+      # from a fork would otherwise be able to publish an image the server
+      # then deploys.
+      - name: Log in to GitHub Container Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Building here rather than on the EC2 instance is deliberate. The
+      # t3.micro has 1 GB of RAM and burstable CPU: a full dependency
+      # rebuild exhausts its CPU credits and makes the whole machine
+      # unresponsive, taking the live site down with it. GitHub's runners
+      # have 4 cores and 16 GB, so the same build takes a couple of
+      # minutes and costs production nothing.
+      - name: Build image (push only on main)
+        uses: docker/build-push-action@v6
+        with:
+          context: project/backend
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ github.sha }}
+          # Layer cache shared between runs, so unchanged dependencies are
+          # not reinstalled every time.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   frontend:
     name: Frontend - build
